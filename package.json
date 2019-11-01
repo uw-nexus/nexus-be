@@ -2,10 +2,11 @@
   "name": "nexus-be",
   "version": "1.0.0",
   "description": "Projects platform between non-profit organizations (NPO) and students.",
-  "main": "index.js",
+  "main": "app.ts",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js"
+    "build": "tsc",
+    "dev": "nodemon",
+    "start": "node build/app.js"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +17,11 @@
     "express": "^4.17.1"
   },
   "devDependencies": {
-    "nodemon": "^1.19.4"
+    "@types/cors": "^2.8.6",
+    "@types/express": "^4.17.1",
+    "@types/node": "^12.12.3",
+    "nodemon": "^1.19.4",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.6.4"
   }
 }

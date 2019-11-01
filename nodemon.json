@@ -1,0 +1,6 @@
+{
+  "watch": [
+    "app.ts"
+  ],
+  "exec": "ts-node  --transpile-only ./app.ts"
+}
