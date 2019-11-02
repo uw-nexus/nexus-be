@@ -2,7 +2,7 @@
   "name": "nexus-be",
   "version": "1.0.0",
   "description": "Projects platform between non-profit organizations (NPO) and students.",
-  "main": "app.ts",
+  "main": "src/app.ts",
   "scripts": {
     "build": "tsc",
     "dev": "nodemon",
