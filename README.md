@@ -14,14 +14,17 @@ Define your environment variables in a `.env` file, in KEY=VALUE format.
 | --- | ----------- |
 | PORT | Port exposed to serve backend |
 
-## Run Intructions
-
-### Development
+## Development
 ```sh
 npm run dev
 ```
 
-### Production
+Lint your code before every commit!
+```sh
+npm run lint
+```
+
+## Production
 ```sh
 npm run build
 npm start
