@@ -10,9 +10,14 @@ npm install
 
 Define your environment variables in a `.env` file, in KEY=VALUE format.
 
-| ENV | Description |
-| --- | ----------- |
-| PORT | Port exposed to serve backend |
+| ENV | Default | Description |
+| --- | ------- | ----------- |
+| PORT | 3100 | Port exposed to serve backend |
+| DB_HOST | localhost | MySQL hostname |
+| DB_PORT | 3306 | MySQL port |
+| DB_USER | root | MySQL username |
+| DB_PASS | _null_ | MySQL password |
+| DB_NAME | _null_ | MySQL database name |
 
 ## Development
 ```sh
