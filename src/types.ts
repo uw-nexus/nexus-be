@@ -1,7 +1,7 @@
 export type Student = {
-  _id: string;
+  _id?: string;
   username: string;
-  password: string;
+  password?: string;
   firstName: string;
   lastName: string;
   email: string;
