@@ -162,12 +162,35 @@ export default class ProjectService {
             country: row['country'],
           };
         }),
-      }
+      };
 
       return project;
     } catch (err) {
       console.log(`error fetching project: ${err}`);
       return null;
+    }
+  }
+
+  async deleteProject(projectId: string): Promise<void> {
+    const deleteProjectFields = `DELETE FROM project_field WHERE project_id = ?;`;
+    const deleteProjectSkills = `DELETE FROM project_skill WHERE project_id = ?;`;
+    const deleteProjectCities = `DELETE FROM project_city WHERE project_id = ?;`;
+    const deleteProject = `DELETE FROM project WHERE project_id = ?;`;
+
+    const conn = await this.db.getConnection();
+
+    try {
+      conn.beginTransaction();
+      await conn.execute(deleteProjectFields, [projectId]);
+      await conn.execute(deleteProjectSkills, [projectId]);
+      await conn.execute(deleteProjectCities, [projectId]);
+      await conn.execute(deleteProject, [projectId]);
+      await conn.commit();
+      conn.release();
+    } catch (err) {
+      console.log(`error deleting project: ${err}`);
+      await conn.rollback();
+      conn.release();
     }
   }
 }
