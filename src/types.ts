@@ -21,11 +21,13 @@ export type Project = {
 
 export type ProjectDetails = {
   _id?: string;
-  ownerEmail: string;
+  owner: Student;
   description: string;
   startDate: Date;
   endDate?: Date;
   status?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 
 export type Location = {
