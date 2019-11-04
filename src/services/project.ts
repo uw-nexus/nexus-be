@@ -171,6 +171,143 @@ export default class ProjectService {
     }
   }
 
+  async updateProject(projectId: string, project: Project): Promise<void> {
+    const { details, fields, skills, locations } = project;
+
+    const repeatStatement = (statement: string, count: number): string => {
+      return Array(count)
+        .fill(statement)
+        .join(', ');
+    };
+
+    const updateProjectDetails = `
+      UPDATE project
+      SET
+        ${[
+          details.description ? 'description = ?' : '',
+          details.startDate ? 'start_date = ?' : '',
+          details.endDate ? 'end_date = ?' : '',
+          details.status ? 'status = (SELECT status_id FROM status WHERE name = ?)' : '',
+        ]
+          .filter(Boolean)
+          .join(', ')}
+      WHERE project_id = ?;
+    `;
+
+    const deleteOldProjectFields = `
+      DELETE PF
+      FROM project_field PF
+      JOIN field F ON F.field_id = PF.field_id
+      WHERE PF.project_id = ?
+      AND F.name NOT IN(${repeatStatement('?', fields.length)});
+    `;
+
+    const insertNewProjectFields = `
+      INSERT INTO project_field
+      SELECT null, project_id, field_id
+      FROM (
+        SELECT ? AS project_id, F1.field_id
+        FROM field F1
+        WHERE F1.name IN(${repeatStatement('?', fields.length)})
+        AND NOT EXISTS (
+          SELECT *
+          FROM project_field PF
+          JOIN field F2 ON F2.field_id = PF.field_id
+          WHERE project_id = ?
+          AND F2.name = F1.name
+        )
+      ) T;
+    `;
+
+    const deleteOldProjectSkills = `
+      DELETE PS
+      FROM project_skill PS
+      JOIN skill S ON S.skill_id = PS.skill_id
+      WHERE PS.project_id = ?
+      AND S.name NOT IN(${repeatStatement('?', skills.length)});
+    `;
+
+    const insertNewProjectSkills = `
+      INSERT INTO project_skill
+      SELECT null, project_id, skill_id
+      FROM (
+        SELECT ? AS project_id, S1.skill_id
+        FROM skill S1
+        WHERE S1.name IN(${repeatStatement('?', skills.length)})
+        AND NOT EXISTS (
+          SELECT *
+          FROM project_skill PS
+          JOIN skill S2 ON S2.skill_id = PS.skill_id
+          WHERE project_id = ?
+          AND S2.name = S1.name
+        )
+      ) T;
+    `;
+
+    const deleteOldProjectCities = `
+      DELETE PC
+      FROM project_city PC
+        JOIN city CI ON CI.city_id = PC.city_id
+        LEFT JOIN state ST ON ST.state_id = CI.state_id
+        JOIN country CO ON CO.country_id = CI.country_id
+      WHERE PC.project_id = ?
+      AND CONCAT(CI.name, ', ', COALESCE(ST.name, ''), ', ', CO.name) NOT IN(${repeatStatement('?', locations.length)});
+    `;
+
+    const insertNewProjectCities = `
+      INSERT INTO project_city
+      SELECT null, project_id, city_id
+      FROM (
+        SELECT ? AS project_id, CI1.city_id
+        FROM city CI1
+          LEFT JOIN state ST1 ON ST1.state_id = CI1.state_id
+          JOIN country CO1 ON CO1.country_id = CI1.country_id
+        WHERE
+          CONCAT(CI1.name, ', ', COALESCE(ST1.name, ''), ', ', CO1.name) IN(${repeatStatement('?', locations.length)})
+        AND NOT EXISTS (
+          SELECT *
+          FROM project_city PC
+          JOIN city CI2 ON CI2.city_id = PC.city_id
+            LEFT JOIN state ST2 ON ST2.state_id = CI2.state_id
+            JOIN country CO2 ON CO2.country_id = CI2.country_id
+          WHERE project_id = ?
+          AND CI2.name = CI1.name
+          AND (ST1.name IS NULL OR ST2.name = ST1.name)
+          AND CO2.name = CO2.name
+        )
+      ) T;
+    `;
+
+    const conn = await this.db.getConnection();
+
+    try {
+      conn.beginTransaction();
+
+      const projectParams = [];
+      ['description', 'startDate', 'endDate', 'status'].forEach(attr => {
+        if (details[attr]) projectParams.push(details[attr]);
+      });
+      await conn.execute(updateProjectDetails, [...projectParams, projectId]);
+
+      await conn.execute(deleteOldProjectFields, [projectId, ...fields]);
+      await conn.execute(insertNewProjectFields, [projectId, ...fields, projectId]);
+
+      await conn.execute(deleteOldProjectSkills, [projectId, ...skills]);
+      await conn.execute(insertNewProjectSkills, [projectId, ...skills, projectId]);
+
+      const locParams = locations.map(l => [l.city, l.state, l.country].join(', '));
+      await conn.execute(deleteOldProjectCities, [projectId, ...locParams]);
+      await conn.execute(insertNewProjectCities, [projectId, ...locParams, projectId]);
+
+      await conn.commit();
+      conn.release();
+    } catch (err) {
+      console.log(`error updating project: ${err}`);
+      await conn.rollback();
+      conn.release();
+    }
+  }
+
   async deleteProject(projectId: string): Promise<void> {
     const deleteProjectFields = `DELETE FROM project_field WHERE project_id = ?;`;
     const deleteProjectSkills = `DELETE FROM project_skill WHERE project_id = ?;`;
