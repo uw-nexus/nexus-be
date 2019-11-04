@@ -44,7 +44,7 @@ export default class StudentService {
     }
   }
 
-  async getProfile(email: string): Promise<{ student: Student; majors: string[] }> {
+  async getProfile(studentId: string): Promise<{ student: Student; majors: string[] }> {
     const query = `
       SELECT 
         USR.username AS username,
@@ -63,11 +63,11 @@ export default class StudentService {
       JOIN city CTY ON CTY.city_id = STU.city_id
       JOIN student_major STU_MJR ON STU_MJR.student_id = STU.student_id
       JOIN major MJR ON MJR.major_id = STU_MJR.major_id
-      WHERE email = ?;
+      WHERE student_id = ?;
     `;
 
     try {
-      const [res] = await this.db.execute(query, [email]);
+      const [res] = await this.db.execute(query, [studentId]);
       let student: Student;
 
       if (res[0]) {
@@ -95,7 +95,7 @@ export default class StudentService {
     }
   }
 
-  async updateProfile(student: Student): Promise<void> {
+  async updateProfile(studentId: string, student: Student): Promise<void> {
     const schoolStmt = student.school ? `school_id = (SELECT school_id FROM school WHERE name = ?)` : '';
     const standingStmt = student.standing ? `standing_id = (SELECT standing_id FROM standing WHERE name = ?)` : '';
     const cityStmt = student.city ? `city_id = (SELECT city_id FROM city WHERE name = ?)` : '';
@@ -103,33 +103,33 @@ export default class StudentService {
     const statement = `
       UPDATE student
       SET ${[schoolStmt, standingStmt, cityStmt].filter(Boolean).join(', ')}
-      WHERE email = ?;
+      WHERE studentId = ?;
     `;
 
     const params = [];
 
-    ['school', 'standing', 'city', 'email'].forEach(attr => {
+    ['school', 'standing', 'city'].forEach(attr => {
       if (student[attr]) params.push(student[attr]);
     });
 
     try {
-      await this.db.execute(statement, params);
+      await this.db.execute(statement, [...params, studentId]);
     } catch (err) {
       console.log(`error updating student profile: ${err}`);
     }
   }
 
-  async deleteStudent(email: string): Promise<void> {
-    const findUserId = `SELECT user_id FROM student WHERE email = ?;`;
-    const deleteStudent = `DELETE FROM student WHERE email = ?;`;
+  async deleteStudent(studentId: string): Promise<void> {
+    const findUserId = `SELECT user_id FROM student WHERE student_id = ?;`;
+    const deleteStudent = `DELETE FROM student WHERE student_id = ?;`;
     const deleteUser = `DELETE FROM user WHERE user_id = ?;`;
 
     const conn = await this.db.getConnection();
 
     try {
       conn.beginTransaction();
-      const [student] = await conn.execute(findUserId, [email]);
-      await conn.execute(deleteStudent, [email]);
+      const [student] = await conn.execute(findUserId, [studentId]);
+      await conn.execute(deleteStudent, [studentId]);
       await conn.execute(deleteUser, [student[0]['user_id']]);
       await conn.commit();
       conn.release();
