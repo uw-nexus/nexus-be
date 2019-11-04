@@ -118,4 +118,25 @@ export default class StudentService {
       console.log(`error updating student profile: ${err}`);
     }
   }
+
+  async deleteStudent(email: string): Promise<void> {
+    const findUserId = `SELECT user_id FROM student WHERE email = ?;`;
+    const deleteStudent = `DELETE FROM student WHERE email = ?;`;
+    const deleteUser = `DELETE FROM user WHERE user_id = ?;`;
+
+    const conn = await this.db.getConnection();
+
+    try {
+      conn.beginTransaction();
+      const [student] = await conn.execute(findUserId, [email]);
+      await conn.execute(deleteStudent, [email]);
+      await conn.execute(deleteUser, [student[0]['user_id']]);
+      await conn.commit();
+      conn.release();
+    } catch (err) {
+      console.log(`error deleting student user: ${err}`);
+      await conn.rollback();
+      conn.release();
+    }
+  }
 }
