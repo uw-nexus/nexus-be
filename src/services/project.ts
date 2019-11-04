@@ -41,9 +41,17 @@ export default class ProjectService {
       VALUES ${repeatStatement(`(null, ${projectId}, (SELECT skill_id FROM skill WHERE name = ?))`, skills.length)};
     `;
 
-    const insertProjectCities = (projectId: string): string => `
+    const insertProjectCities = `
       INSERT INTO project_city
-      VALUES ${repeatStatement(`(null, ${projectId}, (SELECT city_id FROM city WHERE name = ?))`, locations.length)};
+      SELECT null, project_id, city_id
+      FROM (
+        SELECT ? AS project_id, CI.city_id
+        FROM city CI
+          LEFT JOIN state ST ON ST.state_id = CI.state_id
+          JOIN country CO ON CO.country_id = CI.country_id
+        WHERE
+          CONCAT(CI.name, ', ', COALESCE(ST.name, ''), ', ', CO.name) IN(${repeatStatement('?', locations.length)})
+      ) T;
     `;
 
     const projectParams = [details.owner.email, details.description, details.startDate, details.endDate];
@@ -55,7 +63,10 @@ export default class ProjectService {
       const projectId = projectRes['insertId'];
       await conn.execute(insertProjectFields(projectId), fields);
       await conn.execute(insertProjectSkills(projectId), skills);
-      await conn.execute(insertProjectCities(projectId), locations.map(l => l.city));
+
+      const locParams = locations.map(l => [l.city, l.state, l.country].join(', '));
+      await conn.execute(insertProjectCities, [projectId, ...locParams]);
+
       await conn.commit();
       conn.release();
     } catch (err) {
