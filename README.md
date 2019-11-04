@@ -24,8 +24,12 @@ Define your environment variables in a `.env` file, in KEY=VALUE format.
 npm run dev
 ```
 
-Lint your code before every commit!
+Pre-commit linting has been automated but will not fix errors.
 ```sh
+# To fix minor style errors
+npm run lint:fix
+
+# To lint
 npm run lint
 ```
 
