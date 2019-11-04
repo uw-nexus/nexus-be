@@ -294,10 +294,8 @@ export default class ProjectService {
     try {
       conn.beginTransaction();
 
-      const projectParams = [];
-      ['description', 'startDate', 'endDate', 'status'].forEach(attr => {
-        if (details[attr]) projectParams.push(details[attr]);
-      });
+      const { description, startDate, endDate, status } = details;
+      const projectParams = [description, startDate, endDate, status].filter(Boolean);
       await conn.execute(updateProjectDetails, [...projectParams, projectId]);
 
       await conn.execute(deleteOldProjectFields, [projectId, ...fields]);
