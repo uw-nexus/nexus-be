@@ -1,4 +1,4 @@
-import { Pool } from 'mysql2/promise';
+import { Pool, RowDataPacket } from 'mysql2/promise';
 import { Project, ProjectDetails } from '../types';
 
 export default class ProjectService {
@@ -115,6 +115,56 @@ export default class ProjectService {
       }
 
       return projectDetails;
+    } catch (err) {
+      console.log(`error fetching project details: ${err}`);
+      return null;
+    }
+  }
+
+  async getProject(projectId: string): Promise<Project> {
+    const getProjectFields = `
+      SELECT F.name AS field
+      FROM project P
+      JOIN project_field PF ON PF.project_id = P.project_id
+      JOIN field F ON F.field_id = PF.field_id;
+    `;
+
+    const getProjectSkills = `
+      SELECT SK.name AS skill
+      FROM project P
+      JOIN project_skill PS ON PS.project_id = P.project_id
+      JOIN skill SK ON SK.skill_id = PS.skill_id;
+    `;
+
+    const getProjectCities = `
+      SELECT CI.name AS city, ST.name AS state, CO.name AS country
+      FROM project P
+      JOIN project_city PC ON PC.project_id = P.project_id
+      JOIN city CI ON CI.city_id = PC.city_id
+      LEFT JOIN state ST ON ST.state_id = CI.state_id
+      JOIN country CO ON CO.country_id = CI.country_id;
+    `;
+
+    try {
+      const projectDetails = await this.getProjectDetails(projectId);
+      const [fieldsRes] = await this.db.execute(getProjectFields, [projectId]);
+      const [skillsRes] = await this.db.execute(getProjectSkills, [projectId]);
+      const [citiesRes] = await this.db.execute(getProjectCities, [projectId]);
+
+      const project = {
+        details: projectDetails,
+        fields: (fieldsRes as RowDataPacket[]).map(row => row['field']),
+        skills: (skillsRes as RowDataPacket[]).map(row => row['skill']),
+        locations: (citiesRes as RowDataPacket[]).map(row => {
+          return {
+            city: row['city'],
+            state: row['state'],
+            country: row['country'],
+          };
+        }),
+      }
+
+      return project;
     } catch (err) {
       console.log(`error fetching project: ${err}`);
       return null;
