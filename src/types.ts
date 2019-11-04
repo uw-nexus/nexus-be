@@ -1,4 +1,10 @@
 export type Student = {
+  profile: StudentProfile;
+  majors: string[];
+  skills: string[];
+};
+
+export type StudentProfile = {
   _id?: string;
   username?: string;
   password?: string;
@@ -8,8 +14,7 @@ export type Student = {
   dob?: Date;
   school?: string;
   standing?: string;
-  city?: string;
-  country?: string;
+  location?: Location;
 };
 
 export type Project = {
@@ -21,7 +26,7 @@ export type Project = {
 
 export type ProjectDetails = {
   _id?: string;
-  owner: Student;
+  owner: StudentProfile;
   description: string;
   startDate: Date;
   endDate?: Date;
