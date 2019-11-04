@@ -44,7 +44,7 @@ export default class StudentService {
     }
   }
 
-  async getStudentProfile(email: string): Promise<{ student: Student; majors: string[] }> {
+  async getProfile(email: string): Promise<{ student: Student; majors: string[] }> {
     const query = `
       SELECT 
         USR.username AS username,
@@ -92,6 +92,30 @@ export default class StudentService {
     } catch (err) {
       console.log(`error fetching student profile: ${err}`);
       return null;
+    }
+  }
+
+  async updateProfile(student: Student): Promise<void> {
+    const schoolStmt = student.school ? `school_id = (SELECT school_id FROM school WHERE name = ?)` : '';
+    const standingStmt = student.standing ? `standing_id = (SELECT standing_id FROM standing WHERE name = ?)` : '';
+    const cityStmt = student.city ? `city_id = (SELECT city_id FROM city WHERE name = ?)` : '';
+
+    const statement = `
+      UPDATE student
+      SET ${[schoolStmt, standingStmt, cityStmt].filter(Boolean).join(', ')}
+      WHERE email = ?;
+    `;
+
+    const params = [];
+
+    ['school', 'standing', 'city', 'email'].forEach(attr => {
+      if (student[attr]) params.push(student[attr]);
+    });
+
+    try {
+      await this.db.execute(statement, params);
+    } catch (err) {
+      console.log(`error updating student profile: ${err}`);
     }
   }
 }
