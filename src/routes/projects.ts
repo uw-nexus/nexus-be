@@ -1,15 +1,10 @@
 import { Application, Router, Request, Response } from 'express';
 import ProjectService from '../services/project';
 import { Pool } from 'mysql2/promise';
-import { ProjectDetails } from '../types';
+import { Project } from '../types';
 
 const createProject = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
-  const project = {
-    details: req.body.details as ProjectDetails,
-    fields: req.body.fields,
-    skills: req.body.skills,
-    locations: req.body.locations,
-  };
+  const project = req.body.project as Project;
 
   try {
     const projectId = await srv.createProject(project);
@@ -32,13 +27,7 @@ const getProject = (srv: ProjectService) => async (req: Request, res: Response):
 
 const updateProject = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
   const { projectId } = req.params;
-
-  const project = {
-    details: req.body.details as ProjectDetails,
-    fields: req.body.fields,
-    skills: req.body.skills,
-    locations: req.body.locations,
-  };
+  const project = req.body.project as Project;
 
   try {
     await srv.updateProject(projectId, project);

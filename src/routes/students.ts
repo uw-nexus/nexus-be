@@ -1,15 +1,11 @@
 import { Application, Router, Request, Response } from 'express';
 import StudentService from '../services/student';
 import { Pool } from 'mysql2/promise';
-import { StudentProfile } from '../types';
+import { Student } from '../types';
 import registerContractRoutes from './contracts';
 
 const createStudent = (srv: StudentService) => async (req: Request, res: Response): Promise<void> => {
-  const student = {
-    profile: req.body.profile as StudentProfile,
-    majors: req.body.majors,
-    skills: req.body.skills,
-  };
+  const student = req.body.student as Student;
 
   try {
     const studentId = await srv.createStudent(student);
@@ -32,12 +28,7 @@ const getStudent = (srv: StudentService) => async (req: Request, res: Response):
 
 const updateStudent = (srv: StudentService) => async (req: Request, res: Response): Promise<void> => {
   const { studentId } = req.params;
-
-  const student = {
-    profile: req.body.profile as StudentProfile,
-    majors: req.body.majors,
-    skills: req.body.skills,
-  };
+  const student = req.body.student as Student;
 
   try {
     await srv.updateStudent(studentId, student);
