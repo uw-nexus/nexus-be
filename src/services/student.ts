@@ -8,7 +8,7 @@ export default class StudentService {
     this.db = promisePool;
   }
 
-  async createStudent(student: Student): Promise<void> {
+  async createStudent(student: Student): Promise<string> {
     const { profile, majors, skills } = student;
 
     const insertUser = `
@@ -71,10 +71,12 @@ export default class StudentService {
 
       await conn.commit();
       conn.release();
+      return studentId;
     } catch (err) {
       console.log(`error creating student user: ${err}`);
       await conn.rollback();
       conn.release();
+      return null;
     }
   }
 
@@ -248,8 +250,8 @@ export default class StudentService {
 
       const { school, standing } = profile;
       const { city, state, country } = profile.location;
-      const profileParams = [school, standing, ...[city, state, country].filter(Boolean), studentId];
-      await this.db.execute(updateStudentProfile, profileParams);
+      const profileParams = [school, standing, city, state, country].filter(Boolean);
+      await this.db.execute(updateStudentProfile, [...profileParams, studentId]);
 
       await conn.execute(deleteOldStudentMajors, [studentId, ...majors]);
       await conn.execute(insertNewStudentMajors, [studentId, ...majors, studentId]);
