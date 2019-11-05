@@ -11,7 +11,9 @@ const createStudent = (srv: StudentService) => async (req: Request, res: Respons
     const studentId = await srv.createStudent(student);
     res.json({ studentId });
   } catch (error) {
-    res.json({ error });
+    res.json({
+      error: (error as Error).message,
+    });
   }
 };
 
@@ -22,7 +24,9 @@ const getStudent = (srv: StudentService) => async (req: Request, res: Response):
     const student = await srv.getStudent(studentId);
     res.json({ student });
   } catch (error) {
-    res.json({ error });
+    res.json({
+      error: (error as Error).message,
+    });
   }
 };
 
@@ -34,7 +38,9 @@ const updateStudent = (srv: StudentService) => async (req: Request, res: Respons
     await srv.updateStudent(studentId, student);
     res.json({ success: `Student id: ${studentId} updated.` });
   } catch (error) {
-    res.json({ error });
+    res.json({
+      error: (error as Error).message,
+    });
   }
 };
 
@@ -45,7 +51,9 @@ const deleteStudent = (srv: StudentService) => async (req: Request, res: Respons
     await srv.getStudent(studentId);
     res.json({ success: `Student id: ${studentId} deleted from database.` });
   } catch (error) {
-    res.json({ error });
+    res.json({
+      error: (error as Error).message,
+    });
   }
 };
 

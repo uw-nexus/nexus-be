@@ -10,7 +10,9 @@ const createStudentContract = (srv: ContractService) => async (req: Request, res
     const contractId = await srv.createStudentContract(contract);
     res.json({ contractId });
   } catch (error) {
-    res.json({ error });
+    res.json({
+      error: (error as Error).message,
+    });
   }
 };
 
@@ -21,7 +23,9 @@ const getStudentContracts = (srv: ContractService) => async (req: Request, res: 
     const contracts = await srv.getStudentContracts(studentId);
     res.json({ contracts });
   } catch (error) {
-    res.json({ error });
+    res.json({
+      error: (error as Error).message,
+    });
   }
 };
 
@@ -33,7 +37,9 @@ const updateStudentContract = (srv: ContractService) => async (req: Request, res
     await srv.updateStudentContract(contractId, contract);
     res.json({ success: `Contract id: ${contractId} updated.` });
   } catch (error) {
-    res.json({ error });
+    res.json({
+      error: (error as Error).message,
+    });
   }
 };
 

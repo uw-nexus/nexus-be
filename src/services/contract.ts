@@ -28,14 +28,14 @@ export default class ContractService {
       const [res] = await this.db.execute(statement, params);
       return res['insertId'];
     } catch (err) {
-      console.log(`error registering student into project ${err}`);
-      return null;
+      throw new Error(`error registering student into project ${err}`);
     }
   }
 
   async getStudentContracts(studentId: string): Promise<Contract[]> {
     const statement = `
-      SELECT 
+      SELECT
+        C.contract_id AS contractId,
         C.start_date AS contractStartDate,
         C.end_date AS contractEndDate, 
         O.first_name AS ownerFirstName, 
@@ -57,6 +57,7 @@ export default class ContractService {
       const [res] = await this.db.execute(statement, [studentId]);
       const contracts: Contract[] = (res as RowDataPacket[]).map(row => {
         return {
+          _id: row['contractId'],
           project: {
             _id: row['projectId'],
             owner: {
@@ -76,8 +77,7 @@ export default class ContractService {
 
       return contracts;
     } catch (err) {
-      console.log(`error fetching projects that student is part of: ${err}`);
-      return null;
+      throw new Error(`error fetching projects that student is part of: ${err}`);
     }
   }
 
@@ -100,7 +100,7 @@ export default class ContractService {
       const params = [startDate, endDate, status].filter(Boolean);
       await this.db.execute(statement, [...params, contractId]);
     } catch (err) {
-      console.log(`error updating student contract: ${err}`);
+      throw new Error(`error updating student contract: ${err}`);
     }
   }
 }

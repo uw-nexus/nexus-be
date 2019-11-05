@@ -10,7 +10,9 @@ const createProject = (srv: ProjectService) => async (req: Request, res: Respons
     const projectId = await srv.createProject(project);
     res.json({ projectId });
   } catch (error) {
-    res.json({ error });
+    res.json({
+      error: (error as Error).message,
+    });
   }
 };
 
@@ -21,7 +23,9 @@ const getProject = (srv: ProjectService) => async (req: Request, res: Response):
     const project = await srv.getProject(projectId);
     res.json({ project });
   } catch (error) {
-    res.json({ error });
+    res.json({
+      error: (error as Error).message,
+    });
   }
 };
 
@@ -33,7 +37,9 @@ const updateProject = (srv: ProjectService) => async (req: Request, res: Respons
     await srv.updateProject(projectId, project);
     res.json({ success: `Project id: ${projectId} updated.` });
   } catch (error) {
-    res.json({ error });
+    res.json({
+      error: (error as Error).message,
+    });
   }
 };
 
@@ -44,7 +50,9 @@ const deleteProject = (srv: ProjectService) => async (req: Request, res: Respons
     await srv.deleteProject(projectId);
     res.json({ success: `Project id: ${projectId} deleted from database.` });
   } catch (error) {
-    res.json({ error });
+    res.json({
+      error: (error as Error).message,
+    });
   }
 };
 

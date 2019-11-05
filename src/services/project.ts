@@ -71,10 +71,9 @@ export default class ProjectService {
       conn.release();
       return projectId;
     } catch (err) {
-      console.log(`error creating new project: ${err}`);
       await conn.rollback();
       conn.release();
-      return null;
+      throw new Error(`error creating new project: ${err}`);
     }
   }
 
@@ -129,8 +128,7 @@ export default class ProjectService {
 
       return projectDetails;
     } catch (err) {
-      console.log(`error fetching project details: ${err}`);
-      return null;
+      throw new Error(`error fetching project details: ${err}`);
     }
   }
 
@@ -160,6 +158,8 @@ export default class ProjectService {
 
     try {
       const projectDetails = await this.getProjectDetails(projectId);
+      if (!projectDetails) return null;
+
       const [fieldsRes] = await this.db.execute(getProjectFields, [projectId]);
       const [skillsRes] = await this.db.execute(getProjectSkills, [projectId]);
       const [citiesRes] = await this.db.execute(getProjectCities, [projectId]);
@@ -179,8 +179,7 @@ export default class ProjectService {
 
       return project;
     } catch (err) {
-      console.log(`error fetching project: ${err}`);
-      return null;
+      throw new Error(`error fetching project: ${err}`);
     }
   }
 
@@ -313,9 +312,9 @@ export default class ProjectService {
       await conn.commit();
       conn.release();
     } catch (err) {
-      console.log(`error updating project: ${err}`);
       await conn.rollback();
       conn.release();
+      throw new Error(`error updating project: ${err}`);
     }
   }
 
@@ -336,9 +335,9 @@ export default class ProjectService {
       await conn.commit();
       conn.release();
     } catch (err) {
-      console.log(`error deleting project: ${err}`);
       await conn.rollback();
       conn.release();
+      throw new Error(`error deleting project: ${err}`);
     }
   }
 }

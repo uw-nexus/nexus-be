@@ -73,10 +73,9 @@ export default class StudentService {
       conn.release();
       return studentId;
     } catch (err) {
-      console.log(`error creating student user: ${err}`);
       await conn.rollback();
       conn.release();
-      return null;
+      throw new Error(`error creating student user: ${err}`);
     }
   }
 
@@ -126,8 +125,7 @@ export default class StudentService {
 
       return profile;
     } catch (err) {
-      console.log(`error fetching student profile: ${err}`);
-      return null;
+      throw new Error(`error fetching student profile: ${err}`);
     }
   }
 
@@ -150,6 +148,8 @@ export default class StudentService {
 
     try {
       const studentProfile = await this.getStudentProfile(studentId);
+      if (!studentProfile) return null;
+
       const [majorsRes] = await this.db.execute(getStudentMajors, [studentId]);
       const [skillsRes] = await this.db.execute(getStudentSkills, [studentId]);
 
@@ -161,8 +161,7 @@ export default class StudentService {
 
       return student;
     } catch (err) {
-      console.log(`error fetching student: ${err}`);
-      return null;
+      throw new Error(`error fetching student: ${err}`);
     }
   }
 
@@ -262,9 +261,9 @@ export default class StudentService {
       await conn.commit();
       conn.release();
     } catch (err) {
-      console.log(`error updating student profile: ${err}`);
       await conn.rollback();
       conn.release();
+      throw new Error(`error updating student profile: ${err}`);
     }
   }
 
@@ -290,9 +289,9 @@ export default class StudentService {
       await conn.commit();
       conn.release();
     } catch (err) {
-      console.log(`error deleting student: ${err}`);
       await conn.rollback();
       conn.release();
+      throw new Error(`error deleting student: ${err}`);
     }
   }
 }
