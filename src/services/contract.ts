@@ -8,7 +8,7 @@ export default class ContractService {
     this.db = promisePool;
   }
 
-  async createStudentContract(contract: Contract): Promise<void> {
+  async createStudentContract(contract: Contract): Promise<string> {
     const { project, student, startDate, endDate, status } = contract;
 
     const statement = `
@@ -25,9 +25,11 @@ export default class ContractService {
 
     try {
       const params = [project._id, student.email, startDate, endDate, status].filter(Boolean);
-      await this.db.execute(statement, params);
+      const [res] = await this.db.execute(statement, params);
+      return res['insertId'];
     } catch (err) {
       console.log(`error registering student into project ${err}`);
+      return null;
     }
   }
 

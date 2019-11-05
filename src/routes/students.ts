@@ -2,6 +2,7 @@ import { Application, Router, Request, Response } from 'express';
 import StudentService from '../services/student';
 import { Pool } from 'mysql2/promise';
 import { StudentProfile } from '../types';
+import registerContractRoutes from './contracts';
 
 const createStudent = (srv: StudentService) => async (req: Request, res: Response): Promise<void> => {
   const student = {
@@ -66,5 +67,6 @@ export default (app: Application, db: Pool): void => {
   router.patch('/:studentId', updateStudent(studentService));
   router.delete('/:studentId', deleteStudent(studentService));
 
+  registerContractRoutes(router, db);
   app.use('/students', router);
 };
