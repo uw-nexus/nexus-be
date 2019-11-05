@@ -26,9 +26,9 @@ export type Project = {
 
 export type ProjectDetails = {
   _id?: string;
-  owner: StudentProfile;
-  description: string;
-  startDate: Date;
+  owner?: StudentProfile;
+  description?: string;
+  startDate?: Date;
   endDate?: Date;
   status?: string;
   createdAt?: Date;
@@ -39,4 +39,13 @@ export type Location = {
   city: string;
   state?: string;
   country: string;
+};
+
+export type Contract = {
+  _id?: string;
+  project?: ProjectDetails;
+  student?: StudentProfile;
+  startDate?: Date;
+  endDate?: Date;
+  status?: string;
 };
