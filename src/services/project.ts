@@ -8,7 +8,7 @@ export default class ProjectService {
     this.db = promisePool;
   }
 
-  async createProject(project: Project): Promise<void> {
+  async createProject(project: Project): Promise<string> {
     const { details, fields, skills, locations } = project;
 
     const insertProject = `
@@ -69,10 +69,12 @@ export default class ProjectService {
 
       await conn.commit();
       conn.release();
+      return projectId;
     } catch (err) {
       console.log(`error creating new project: ${err}`);
       await conn.rollback();
       conn.release();
+      return null;
     }
   }
 
@@ -198,7 +200,7 @@ export default class ProjectService {
           details.description ? 'description = ?' : '',
           details.startDate ? 'start_date = ?' : '',
           details.endDate ? 'end_date = ?' : '',
-          details.status ? 'status = (SELECT status_id FROM status WHERE name = ?)' : '',
+          details.status ? 'status_id = (SELECT status_id FROM status WHERE name = ?)' : '',
         ]
           .filter(Boolean)
           .join(', ')}
