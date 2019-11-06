@@ -27,6 +27,7 @@ export type Project = {
 export type ProjectDetails = {
   _id?: string;
   owner?: StudentProfile;
+  title?: string;
   description?: string;
   startDate?: Date;
   endDate?: Date;

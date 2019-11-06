@@ -19,7 +19,7 @@ export default class ProjectService {
           FROM user U
           JOIN student S ON S.user_id = U.user_id
           WHERE email = ?), 
-        ?, ?, ?, 
+        ?, ?, ?, ?, 
         (SELECT status_id FROM status WHERE name = 'Active'), 
         CURDATE(), CURDATE()
       );
@@ -54,7 +54,7 @@ export default class ProjectService {
       ) T;
     `;
 
-    const projectParams = [details.owner.email, details.description, details.startDate, details.endDate];
+    const projectParams = [details.owner.email, details.title, details.description, details.startDate, details.endDate];
     const conn = await this.db.getConnection();
 
     try {
@@ -86,6 +86,7 @@ export default class ProjectService {
         SNC.email AS ownerEmail,
         NPO.npo_id AS npoId,
         NPO.name AS npoName,
+        P.title AS title,
         P.description AS description,
         P.start_date AS startDate,
         P.end_date AS endDate,
@@ -117,6 +118,7 @@ export default class ProjectService {
             lastName: res[0]['ownerLastName'],
             email: res[0]['ownerEmail'],
           },
+          title: res[0]['title'],
           description: res[0]['description'],
           startDate: res[0]['startDate'],
           endDate: res[0]['endDate'],
@@ -196,6 +198,7 @@ export default class ProjectService {
       UPDATE project
       SET
         ${[
+          details.title ? 'title = ?' : '',
           details.description ? 'description = ?' : '',
           details.startDate ? 'start_date = ?' : '',
           details.endDate ? 'end_date = ?' : '',
@@ -295,8 +298,8 @@ export default class ProjectService {
     try {
       conn.beginTransaction();
 
-      const { description, startDate, endDate, status } = details;
-      const projectParams = [description, startDate, endDate, status].filter(Boolean);
+      const { title, description, startDate, endDate, status } = details;
+      const projectParams = [title, description, startDate, endDate, status].filter(Boolean);
       await conn.execute(updateProjectDetails, [...projectParams, projectId]);
 
       await conn.execute(deleteOldProjectFields, [projectId, ...fields]);

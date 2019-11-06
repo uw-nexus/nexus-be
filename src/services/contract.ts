@@ -42,7 +42,7 @@ export default class ContractService {
         O.last_name AS ownerLastName,
         O.email AS ownerEmail,
         P.project_id AS projectId,
-        P.description AS projDescription,
+        P.title AS projectTitle,
         P.start_date AS projStartDate, 
         P.end_date AS projEndDate,
         S.name AS contractStatus
@@ -65,7 +65,7 @@ export default class ContractService {
               lastName: row['ownerLastName'],
               email: row['ownerEmail'],
             },
-            description: row['projDescription'],
+            title: row['projectTitle'],
             startDate: row['projStartDate'],
             endDate: row['projEndDate'],
           },
