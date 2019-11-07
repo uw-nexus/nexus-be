@@ -1,6 +1,6 @@
 import { Contract } from '../../types';
 
-// [projectid, studentEmail, startDate, endDate, status]
+// [projectid, st./contractrtDate, endDate, status]
 const insertStudentContract = (contract: Contract): string => `
   INSERT INTO contract
   VALUES (

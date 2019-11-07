@@ -1,6 +1,6 @@
 import { Pool, RowDataPacket } from 'mysql2/promise';
-import { Student, StudentProfile } from '../types';
-import SQL from './sql/student';
+import { Student, StudentProfile } from '../../types';
+import SQL from './sql';
 
 export default class StudentService {
   db: Pool;
