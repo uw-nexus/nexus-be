@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import helmet from 'helmet';
 import cors from 'cors';
 import config from './config';
 import db from './db';
@@ -7,6 +8,7 @@ import registerProjectRoutes from './routes/projects';
 
 const app = express();
 app.use(express.json());
+app.use(helmet());
 app.use(cors());
 
 app.get('/', (req: Request, res: Response) => res.send('NEXUS UW App Backend'));
