@@ -18,6 +18,7 @@ Define your environment variables in a `.env` file, in KEY=VALUE format.
 | DB_USER | root | MySQL username |
 | DB_PASS | _null_ | MySQL password |
 | DB_NAME | _null_ | MySQL database name |
+| JWT_SECRET | jwt-secret | JWT secret key |
 
 ## Development
 ```sh

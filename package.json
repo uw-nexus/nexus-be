@@ -19,7 +19,11 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "helmet": "^3.21.2",
-    "mysql2": "^2.0.0"
+    "jsonwebtoken": "^8.5.1",
+    "mysql2": "^2.0.0",
+    "passport": "^0.4.0",
+    "passport-jwt": "^4.0.0",
+    "passport-local": "^1.0.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^3.0.0",
@@ -28,6 +32,9 @@
     "@types/helmet": "0.0.45",
     "@types/mysql2": "github:types/mysql2",
     "@types/node": "^12.12.3",
+    "@types/passport": "^1.0.1",
+    "@types/passport-jwt": "^3.0.3",
+    "@types/passport-local": "^1.0.33",
     "@typescript-eslint/eslint-plugin": "^2.6.0",
     "@typescript-eslint/parser": "^2.6.0",
     "eslint": "^6.6.0",

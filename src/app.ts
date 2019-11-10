@@ -3,6 +3,8 @@ import helmet from 'helmet';
 import cors from 'cors';
 import config from './config';
 import db from './db';
+import addPassports from './middlewares/passport';
+
 import registerStudentRoutes from './routes/students';
 import registerProjectRoutes from './routes/projects';
 
@@ -10,6 +12,8 @@ const app = express();
 app.use(express.json());
 app.use(helmet());
 app.use(cors());
+
+addPassports(db.promisePool);
 
 app.get('/', (req: Request, res: Response) => res.send('NEXUS UW App Backend'));
 registerStudentRoutes(app, db.promisePool);
