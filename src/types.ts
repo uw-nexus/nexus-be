@@ -1,3 +1,10 @@
+export type User = {
+  _id?: string;
+  username: string;
+  password?: string;
+  userType?: string;
+};
+
 export type Student = {
   profile: StudentProfile;
   majors: string[];
