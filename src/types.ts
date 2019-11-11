@@ -13,7 +13,7 @@ export type Student = {
 
 export type StudentProfile = {
   _id?: string;
-  user: User;
+  user?: User;
   firstName?: string;
   lastName?: string;
   email?: string;

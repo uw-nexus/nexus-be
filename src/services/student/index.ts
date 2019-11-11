@@ -9,7 +9,7 @@ export default class StudentService {
     this.db = promisePool;
   }
 
-  async createStudent(student: Student): Promise<string> {
+  async createStudent(username: string, student: Student): Promise<string> {
     const { profile, majors, skills } = student;
     const conn = await this.db.getConnection();
 
@@ -17,11 +17,11 @@ export default class StudentService {
       conn.beginTransaction();
 
       const studentParams = [
-        profile.user.id,
+        username,
         profile.firstName,
         profile.lastName,
         profile.email,
-        profile.dob.toISOString().split('T')[0],
+        profile.dob,
         profile.school,
         profile.standing,
         profile.location.city,
@@ -32,77 +32,84 @@ export default class StudentService {
       const [studentRes] = await conn.execute(SQL.insertStudent(profile), studentParams);
       const studentId = studentRes['insertId'];
 
-      const majorsParams = majors.reduce((acc, cur) => acc.concat(studentId, cur), []);
-      const skillsParams = skills.reduce((acc, cur) => acc.concat(studentId, cur), []);
-      await conn.execute(SQL.insertStudentMajors(majors), majorsParams);
-      await conn.execute(SQL.insertStudentSkills(skills), skillsParams);
+      if (majors && majors.length) {
+        const majorsParams = majors.reduce((acc, cur) => acc.concat(studentId, cur), []);
+        await conn.execute(SQL.insertStudentMajors(majors), majorsParams);
+      }
+
+      if (skills && skills.length) {
+        const skillsParams = skills.reduce((acc, cur) => acc.concat(studentId, cur), []);
+        await conn.execute(SQL.insertStudentSkills(skills), skillsParams);
+      }
 
       await conn.commit();
       conn.release();
+
       return studentId;
     } catch (err) {
       await conn.rollback();
       conn.release();
-      throw new Error(`error creating student user: ${err}`);
+      throw err;
     }
   }
 
-  async getStudentProfile(studentId: string): Promise<StudentProfile> {
-    try {
-      const [res] = await this.db.execute(SQL.getStudentProfile, [studentId]);
-      let profile: StudentProfile;
-
-      if (res[0]) {
-        profile = {
-          user: {
-            username: res[0].username,
-          },
-          firstName: res[0].firstName,
-          lastName: res[0].lastName,
-          email: res[0].email,
-          dob: new Date(res[0].dob),
-          school: res[0].school,
-          standing: res[0].standing,
-          location: {
-            city: res[0].city,
-            state: res[0].state,
-            country: res[0].country,
-          },
-        };
-      }
-
-      return profile;
-    } catch (err) {
-      throw new Error(`error fetching student profile: ${err}`);
+  async getStudentId(username: string): Promise<string> {
+    const [res] = await this.db.execute(SQL.getStudentId, [username]);
+    if (!res[0]) {
+      throw new Error('Student not found.');
     }
+
+    return res[0].studentId;
   }
 
-  async getStudent(studentId: string): Promise<Student> {
-    try {
-      const studentProfile = await this.getStudentProfile(studentId);
-      if (!studentProfile) return null;
+  async getStudentProfile(username: string, studentId: string): Promise<StudentProfile> {
+    const [res] = await this.db.execute(SQL.getStudentProfile, [studentId]);
+    let profile: StudentProfile;
 
-      const [majorsRes] = await this.db.execute(SQL.getStudentMajors, [studentId]);
-      const [skillsRes] = await this.db.execute(SQL.getStudentSkills, [studentId]);
-
-      const student = {
-        profile: studentProfile,
-        majors: (majorsRes as RowDataPacket[]).map(row => row.major),
-        skills: (skillsRes as RowDataPacket[]).map(row => row.skill),
+    if (res[0]) {
+      profile = {
+        user: { username },
+        firstName: res[0].firstName,
+        lastName: res[0].lastName,
+        email: res[0].email,
+        dob: new Date(res[0].dob),
+        school: res[0].school,
+        standing: res[0].standing,
+        location: {
+          city: res[0].city,
+          state: res[0].state,
+          country: res[0].country,
+        },
       };
-
-      return student;
-    } catch (err) {
-      throw new Error(`error fetching student: ${err}`);
     }
+
+    return profile;
   }
 
-  async updateStudent(studentId: string, student: Student): Promise<void> {
+  async getStudent(username: string): Promise<Student> {
+    const studentId = await this.getStudentId(username);
+    const studentProfile = await this.getStudentProfile(username, studentId);
+    if (!studentProfile) return null;
+
+    const [majorsRes] = await this.db.execute(SQL.getStudentMajors, [studentId]);
+    const [skillsRes] = await this.db.execute(SQL.getStudentSkills, [studentId]);
+
+    const student = {
+      profile: studentProfile,
+      majors: (majorsRes as RowDataPacket[]).map(row => row.major),
+      skills: (skillsRes as RowDataPacket[]).map(row => row.skill),
+    };
+
+    return student;
+  }
+
+  async updateStudent(username: string, student: Student): Promise<void> {
     const { profile, majors, skills } = student;
     const conn = await this.db.getConnection();
 
     try {
       conn.beginTransaction();
+      const studentId = await this.getStudentId(username);
 
       const profileParams = [
         profile.school,
@@ -123,15 +130,16 @@ export default class StudentService {
     } catch (err) {
       await conn.rollback();
       conn.release();
-      throw new Error(`error updating student profile: ${err}`);
+      throw err;
     }
   }
 
-  async deleteStudent(studentId: string): Promise<void> {
+  async deleteStudent(username: string): Promise<void> {
     const conn = await this.db.getConnection();
 
     try {
       conn.beginTransaction();
+      const studentId = await this.getStudentId(username);
       await conn.execute(SQL.deleteStudentMajors, [studentId]);
       await conn.execute(SQL.deleteStudentSkills, [studentId]);
       await conn.execute(SQL.deleteStudent, [studentId]);
@@ -140,7 +148,7 @@ export default class StudentService {
     } catch (err) {
       await conn.rollback();
       conn.release();
-      throw new Error(`error deleting student: ${err}`);
+      throw err;
     }
   }
 }
