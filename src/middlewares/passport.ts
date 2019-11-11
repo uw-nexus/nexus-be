@@ -32,7 +32,7 @@ const jwt = (srv: UserService): JwtStrategy => {
 
   return new JwtStrategy(jwtOpts, async (payload, done) => {
     try {
-      const user = await srv.findUser(payload.userId);
+      const user = await srv.findUser(payload.username);
       done(null, user);
     } catch (error) {
       done(error);

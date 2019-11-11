@@ -6,7 +6,7 @@ const insertUser = `
 
 // [username]
 const findUser = `
-  SELECT U.username, U.password, T.name AS userType
+  SELECT U.user_id AS id, U.username, U.password, T.name AS userType
   FROM user U
   JOIN user_type T ON T.user_type_id = U.user_type_id
   WHERE username = ?;

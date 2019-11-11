@@ -17,7 +17,7 @@ export default class StudentService {
       conn.beginTransaction();
 
       const studentParams = [
-        profile.user._id,
+        profile.user.id,
         profile.firstName,
         profile.lastName,
         profile.email,

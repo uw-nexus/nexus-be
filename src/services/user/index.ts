@@ -10,8 +10,8 @@ export default class UserService {
     this.db = promisePool;
   }
 
-  async createUser(user: User, userType: string): Promise<string> {
-    const { username, password } = user;
+  async createUser(user: User): Promise<string> {
+    const { username, password, userType } = user;
 
     try {
       const passwordHash = await bcrypt.hash(password, 10);
@@ -26,17 +26,7 @@ export default class UserService {
   async findUser(username: string): Promise<User> {
     try {
       const [res] = await this.db.execute(SQL.findUser, [username]);
-      let user: User;
-
-      if (res[0]) {
-        user = {
-          username: res[0].username,
-          password: res[0].password,
-          userType: res[0].userType,
-        };
-      }
-
-      return user;
+      return res[0] as User;
     } catch (err) {
       throw new Error(`error finding user: ${err}`);
     }
