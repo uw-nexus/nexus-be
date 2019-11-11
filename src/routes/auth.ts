@@ -21,7 +21,8 @@ const register = (srv: UserService) => async (req: Request, res: Response, next:
 const generateToken = async (req: Request, res: Response): Promise<void> => {
   const { username, userType } = req.user as User;
   const token = jwt.sign({ username, userType }, config.JWT_SECRET);
-  res.json({ token });
+  res.cookie('token', token, { httpOnly: true });
+  res.redirect('/');
 };
 
 export default (app: Application, db: Pool): void => {
