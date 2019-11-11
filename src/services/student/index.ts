@@ -15,11 +15,9 @@ export default class StudentService {
 
     try {
       conn.beginTransaction();
-      const userParams = [profile.username, profile.password];
-      const [userRes] = await conn.execute(SQL.insertUser, userParams);
 
       const studentParams = [
-        userRes['insertId'],
+        profile.user._id,
         profile.firstName,
         profile.lastName,
         profile.email,
@@ -56,7 +54,9 @@ export default class StudentService {
 
       if (res[0]) {
         profile = {
-          username: res[0].username,
+          user: {
+            username: res[0].username,
+          },
           firstName: res[0].firstName,
           lastName: res[0].lastName,
           email: res[0].email,
@@ -134,11 +134,7 @@ export default class StudentService {
       conn.beginTransaction();
       await conn.execute(SQL.deleteStudentMajors, [studentId]);
       await conn.execute(SQL.deleteStudentSkills, [studentId]);
-
-      const [student] = await conn.execute(SQL.findUserId, [studentId]);
       await conn.execute(SQL.deleteStudent, [studentId]);
-      await conn.execute(SQL.deleteUser, [student[0]['user_id']]);
-
       await conn.commit();
       conn.release();
     } catch (err) {

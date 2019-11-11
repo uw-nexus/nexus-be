@@ -13,11 +13,10 @@ export type Student = {
 
 export type StudentProfile = {
   _id?: string;
-  username?: string;
-  password?: string;
+  user: User;
   firstName?: string;
   lastName?: string;
-  email: string;
+  email?: string;
   dob?: Date;
   school?: string;
   standing?: string;

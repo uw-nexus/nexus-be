@@ -6,12 +6,6 @@ const repeatStatement = (statement: string, items: string[]): string => {
     .join(', ');
 };
 
-// [username, password]
-const insertUser = `
-  INSERT INTO user
-  VALUES (null, (SELECT user_type_id FROM user_type WHERE name = 'Student'), ?, ?);
-`;
-
 // [userId, firstName, lastName, email, dob, school, standing, city, state, location]
 const insertStudent = (profile: StudentProfile): string => `
   INSERT INTO student
@@ -165,14 +159,9 @@ const insertNewStudentSkills = (skills: string[]): string => `
 // [studentId]
 const deleteStudentMajors = `DELETE FROM student_major WHERE student_id = ?;`;
 const deleteStudentSkills = `DELETE FROM student_skill WHERE student_id = ?;`;
-const findUserId = `SELECT user_id FROM student WHERE student_id = ?;`;
 const deleteStudent = `DELETE FROM student WHERE student_id = ?;`;
 
-// [userId]
-const deleteUser = `DELETE FROM user WHERE user_id = ?;`;
-
 export default {
-  insertUser,
   insertStudent,
   insertStudentMajors,
   insertStudentSkills,
@@ -186,7 +175,5 @@ export default {
   insertNewStudentSkills,
   deleteStudentMajors,
   deleteStudentSkills,
-  findUserId,
   deleteStudent,
-  deleteUser,
 };
