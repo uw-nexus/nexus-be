@@ -4,6 +4,12 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import bcrypt from 'bcrypt';
 
+import {
+  Strategy as FacebookStrategy,
+  StrategyOptionWithRequest as FacebookOptionsWR,
+  VerifyFunctionWithRequest as FacebookVerifyWR,
+} from 'passport-facebook';
+
 import UserService from '../services/user';
 import { Pool } from 'mysql2/promise';
 
@@ -40,8 +46,31 @@ const jwt = (srv: UserService): JwtStrategy => {
   });
 };
 
+const fb = (srv: UserService, userType: string): FacebookStrategy => {
+  const fbOpts: FacebookOptionsWR = {
+    clientID: config.FACEBOOK_APP_ID,
+    clientSecret: config.FACEBOOK_APP_SECRET,
+    callbackURL: `/auth/${userType.toLowerCase()}/facebook/callback`,
+    profileFields: ['id', 'name', 'picture', 'email'],
+    passReqToCallback: true,
+  };
+
+  const fbVerify: FacebookVerifyWR = async (req, accessToken, refreshToken, profile, done) => {
+    try {
+      const userData = profile._json;
+      const user = await srv.findOrCreateFromProvider(userData.id, 'facebook', userType);
+      done(null, user);
+    } catch (error) {
+      done(error);
+    }
+  };
+
+  return new FacebookStrategy(fbOpts, fbVerify);
+};
+
 export default (db: Pool): void => {
   const srv = new UserService(db);
   passport.use(local(srv));
   passport.use(jwt(srv));
+  passport.use('facebook-student', fb(srv, 'Student'));
 };

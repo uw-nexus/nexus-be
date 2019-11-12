@@ -29,8 +29,17 @@ export default (app: Application, db: Pool): void => {
   const router = Router();
   const userService = new UserService(db);
 
+  const authOpts = {
+    session: false,
+    scope: ['email'],
+    failureRedirect: '/login',
+  };
+
   router.post('/register', register(userService), generateToken);
-  router.post('/login', passport.authenticate('local', { session: false }), generateToken);
+  router.post('/login', passport.authenticate('local', authOpts), generateToken);
+
+  router.get('/student/facebook', passport.authenticate('facebook-student', authOpts));
+  router.get('/student/facebook/callback', passport.authenticate('facebook-student', authOpts), generateToken);
 
   app.use('/auth', router);
 };
