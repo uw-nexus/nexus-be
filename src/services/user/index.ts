@@ -31,4 +31,31 @@ export default class UserService {
       throw new Error(`error finding user: ${err}`);
     }
   }
+
+  async findOrCreateFromProvider(userId: string, provider: string, userType): Promise<User> {
+    const username = `${provider}-${userId}`;
+    const randomize = (): string =>
+      Math.random()
+        .toString(36)
+        .slice(2);
+    const password = randomize() + randomize();
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    try {
+      const [userRes] = await this.db.execute(SQL.findUser, [username]);
+      if (userRes[0]) return userRes[0] as User;
+
+      const [res] = await this.db.execute(SQL.insertUser, [userType, username, passwordHash]);
+      const user: User = {
+        id: res['insertId'],
+        username,
+        userType,
+        provider,
+      };
+
+      return user;
+    } catch (err) {
+      throw new Error(`error creating user: ${err}`);
+    }
+  }
 }

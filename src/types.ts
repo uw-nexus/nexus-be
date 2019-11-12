@@ -3,6 +3,7 @@ export type User = {
   username: string;
   password?: string;
   userType?: string;
+  provider?: string;
 };
 
 export type Student = {
