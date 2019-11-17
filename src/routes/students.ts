@@ -3,7 +3,6 @@ import { Pool } from 'mysql2/promise';
 import passport from 'passport';
 import StudentService from '../services/student';
 import { User, Student } from '../types';
-import registerContractRoutes from './contracts';
 
 const createStudent = (srv: StudentService) => async (req: Request, res: Response): Promise<void> => {
   const student = req.body.student as Student;
@@ -68,6 +67,5 @@ export default (app: Application, db: Pool): void => {
   router.patch('/', updateStudent(studentService));
   router.delete('/', deleteStudent(studentService));
 
-  registerContractRoutes(router, db);
   app.use('/students', passport.authenticate('jwt', { session: false }), router);
 };
