@@ -13,7 +13,7 @@ export default class ContractService {
     const { project, student, startDate, endDate, status } = contract;
 
     try {
-      const params = [project._id, student.email, startDate, endDate, status].filter(Boolean);
+      const params = [project.id, student.email, startDate, endDate, status].filter(Boolean);
       const [res] = await this.db.execute(SQL.insertStudentContract(contract), params);
       return res['insertId'];
     } catch (err) {

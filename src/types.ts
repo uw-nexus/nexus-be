@@ -13,7 +13,7 @@ export type Student = {
 };
 
 export type StudentProfile = {
-  _id?: string;
+  id?: string;
   user?: User;
   firstName?: string;
   lastName?: string;
@@ -32,7 +32,7 @@ export type Project = {
 };
 
 export type ProjectDetails = {
-  _id?: string;
+  id?: string;
   owner?: StudentProfile;
   title?: string;
   description?: string;
@@ -50,7 +50,7 @@ export type Location = {
 };
 
 export type Contract = {
-  _id?: string;
+  id?: string;
   project?: ProjectDetails;
   student?: StudentProfile;
   startDate?: Date;
