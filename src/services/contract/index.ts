@@ -10,43 +10,38 @@ export default class ContractService {
   }
 
   async createStudentContract(contract: Contract): Promise<string> {
-    const { project, student, startDate, endDate, status } = contract;
+    const { project, student, startDate, endDate } = contract;
 
     try {
-      const params = [project.id, student.email, startDate, endDate, status].filter(Boolean);
+      const params = [project.id, student.user.username, startDate, endDate].filter(Boolean);
       const [res] = await this.db.execute(SQL.insertStudentContract(contract), params);
       return res['insertId'];
     } catch (err) {
-      throw new Error(`error registering student into project ${err}`);
+      throw err;
     }
   }
 
-  async getStudentContracts(studentId: string): Promise<Contract[]> {
+  async getStudentContracts(studentUsername: string): Promise<Contract[]> {
     try {
-      const [res] = await this.db.execute(SQL.getStudentContracts, [studentId]);
+      const [res] = await this.db.execute(SQL.getStudentContracts, [studentUsername]);
       const contracts: Contract[] = (res as RowDataPacket[]).map(row => {
-        return {
-          _id: row.contractId,
+        const c: Contract = {
+          id: row.contractId,
           project: {
-            _id: row.projectId,
-            owner: {
-              firstName: row.ownerFirstName,
-              lastName: row.ownerLastName,
-              email: row.ownerEmail,
-            },
+            id: row.projectId,
             title: row.projectTitle,
-            startDate: row.projStartDate,
-            endDate: row.projEndDate,
           },
           startDate: row.contractStartDate,
           endDate: row.contractEndDate,
           status: row.contractStatus,
         };
+
+        return c;
       });
 
       return contracts;
     } catch (err) {
-      throw new Error(`error fetching projects that student is part of: ${err}`);
+      throw err;
     }
   }
 
@@ -56,7 +51,7 @@ export default class ContractService {
       const params = [startDate, endDate, status, contractId].filter(Boolean);
       await this.db.execute(SQL.updateStudentContract(contract), params);
     } catch (err) {
-      throw new Error(`error updating student contract: ${err}`);
+      throw err;
     }
   }
 }
