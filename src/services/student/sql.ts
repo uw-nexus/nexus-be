@@ -1,10 +1,11 @@
 import { StudentProfile } from '../../types';
 
-const repeatStatement = (statement: string, items: string[]): string => {
-  return Array(items.length)
-    .fill(statement)
-    .join(', ');
-};
+const repeatStatement = (statement: string, items: string[]): string =>
+  items.length
+    ? Array(items.length)
+        .fill(statement)
+        .join(', ')
+    : `''`;
 
 // [username, password]
 const insertUser = `
