@@ -7,6 +7,14 @@ const repeatStatement = (statement: string, items: string[]): string =>
         .join(', ')
     : `''`;
 
+// [projectId]
+const getOwnerUsername = `
+  SELECT U.username
+  FROM user U
+  JOIN project P ON P.owner_id = U.user_id
+  WHERE P.project_id = ?;
+`;
+
 // [ownerEmail, title, description, startDate, endDate]
 const insertProject = (details: ProjectDetails): string => `
   INSERT INTO project
@@ -15,7 +23,7 @@ const insertProject = (details: ProjectDetails): string => `
     (SELECT U.user_id
       FROM user U
       JOIN student S ON S.user_id = U.user_id
-      WHERE email = ?), 
+      WHERE username = ?), 
     ?, ?,
     ${details.startDate ? '?,' : ''}
     ${details.endDate ? '?,' : ''}
@@ -54,6 +62,7 @@ const insertProjectCities = (locations: string[]): string => `
 // [projectId]
 const getProjectDetails = `
   SELECT
+    U.username AS ownerUsername,
     SNC.user_id AS ownerUserId,
     SNC.first_name AS ownerFirstName,
     SNC.last_name AS ownerLastName,
@@ -220,6 +229,7 @@ const deleteProjectCities = `DELETE FROM project_city WHERE project_id = ?;`;
 const deleteProject = `DELETE FROM project WHERE project_id = ?;`;
 
 export default {
+  getOwnerUsername,
   insertProject,
   insertProjectFields,
   insertProjectSkills,

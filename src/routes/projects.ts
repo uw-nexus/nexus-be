@@ -1,13 +1,15 @@
 import { Application, Router, Request, Response } from 'express';
-import ProjectService from '../services/project';
 import { Pool } from 'mysql2/promise';
-import { Project } from '../types';
+import passport from 'passport';
+import ProjectService from '../services/project';
+import { User, Project } from '../types';
 
 const createProject = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
   const project = req.body.project as Project;
+  const { username } = req.user as User;
 
   try {
-    const projectId = await srv.createProject(project);
+    const projectId = await srv.createProject(username, project);
     res.json({ projectId });
   } catch (error) {
     res.json({
@@ -32,9 +34,10 @@ const getProject = (srv: ProjectService) => async (req: Request, res: Response):
 const updateProject = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
   const { projectId } = req.params;
   const project = req.body.project as Project;
+  const { username } = req.user as User;
 
   try {
-    await srv.updateProject(projectId, project);
+    await srv.updateProject(username, projectId, project);
     res.json({ success: `Project id: ${projectId} updated.` });
   } catch (error) {
     res.json({
@@ -45,9 +48,10 @@ const updateProject = (srv: ProjectService) => async (req: Request, res: Respons
 
 const deleteProject = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
   const { projectId } = req.params;
+  const { username } = req.user as User;
 
   try {
-    await srv.deleteProject(projectId);
+    await srv.deleteProject(username, projectId);
     res.json({ success: `Project id: ${projectId} deleted from database.` });
   } catch (error) {
     res.json({
@@ -65,5 +69,5 @@ export default (app: Application, db: Pool): void => {
   router.patch('/:projectId', updateProject(projectService));
   router.delete('/:projectId', deleteProject(projectService));
 
-  app.use('/projects', router);
+  app.use('/projects', passport.authenticate('jwt', { session: false }), router);
 };

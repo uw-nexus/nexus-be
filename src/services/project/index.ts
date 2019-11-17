@@ -9,24 +9,27 @@ export default class ProjectService {
     this.db = promisePool;
   }
 
-  async createProject(project: Project): Promise<string> {
+  async validateOwner(projectId: string, username: string): Promise<void> {
+    const [res] = await this.db.execute(SQL.getOwnerUsername, [projectId]);
+    if (!res[0] || username != res[0].username) {
+      throw new Error('Unauthorized operation on project.');
+    }
+  }
+
+  async createProject(username: string, project: Project): Promise<string> {
     const { details, fields, skills, locations } = project;
     const conn = await this.db.getConnection();
 
     try {
       conn.beginTransaction();
-      const projectParams = [
-        details.owner.email,
-        details.title,
-        details.description,
-        details.startDate,
-        details.endDate,
-      ];
+      const projectParams = [username, details.title, details.description, details.startDate, details.endDate];
       const [projectRes] = await conn.execute(SQL.insertProject(details), projectParams);
 
       const projectId = projectRes['insertId'];
-      await conn.execute(SQL.insertProjectFields(projectId), fields);
-      await conn.execute(SQL.insertProjectSkills(projectId), skills);
+      const fieldsParams = fields.reduce((acc, cur) => acc.concat(projectId, cur), []);
+      const skillsParams = skills.reduce((acc, cur) => acc.concat(projectId, cur), []);
+      await conn.execute(SQL.insertProjectFields(fields), fieldsParams);
+      await conn.execute(SQL.insertProjectSkills(skills), skillsParams);
 
       const locParams = locations.map(l => [l.city, l.state, l.country].join(', '));
       await conn.execute(SQL.insertProjectCities(locParams), [projectId, ...locParams]);
@@ -37,7 +40,7 @@ export default class ProjectService {
     } catch (err) {
       await conn.rollback();
       conn.release();
-      throw new Error(`error creating new project: ${err}`);
+      throw err;
     }
   }
 
@@ -49,7 +52,7 @@ export default class ProjectService {
       if (res[0]) {
         projectDetails = {
           owner: {
-            _id: res[0].ownerUserId,
+            user: { username: res[0].ownerUsername },
             firstName: res[0].ownerFirstName,
             lastName: res[0].ownerLastName,
             email: res[0].ownerEmail,
@@ -66,7 +69,7 @@ export default class ProjectService {
 
       return projectDetails;
     } catch (err) {
-      throw new Error(`error fetching project details: ${err}`);
+      throw err;
     }
   }
 
@@ -88,11 +91,12 @@ export default class ProjectService {
 
       return project;
     } catch (err) {
-      throw new Error(`error fetching project: ${err}`);
+      throw err;
     }
   }
 
-  async updateProject(projectId: string, project: Project): Promise<void> {
+  async updateProject(username: string, projectId: string, project: Project): Promise<void> {
+    await this.validateOwner(projectId, username);
     const { details, fields, skills, locations } = project;
     const conn = await this.db.getConnection();
 
@@ -122,11 +126,12 @@ export default class ProjectService {
     } catch (err) {
       await conn.rollback();
       conn.release();
-      throw new Error(`error updating project: ${err}`);
+      throw err;
     }
   }
 
-  async deleteProject(projectId: string): Promise<void> {
+  async deleteProject(username: string, projectId: string): Promise<void> {
+    await this.validateOwner(projectId, username);
     const conn = await this.db.getConnection();
 
     try {
@@ -140,7 +145,7 @@ export default class ProjectService {
     } catch (err) {
       await conn.rollback();
       conn.release();
-      throw new Error(`error deleting project: ${err}`);
+      throw err;
     }
   }
 }

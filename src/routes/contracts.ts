@@ -1,7 +1,8 @@
-import { Router, Request, Response } from 'express';
-import ContractService from '../services/contract';
+import { Application, Router, Request, Response } from 'express';
 import { Pool } from 'mysql2/promise';
-import { Contract } from '../types';
+import passport from 'passport';
+import ContractService from '../services/contract';
+import { User, Contract } from '../types';
 
 const createStudentContract = (srv: ContractService) => async (req: Request, res: Response): Promise<void> => {
   const contract = req.body.contract as Contract;
@@ -17,10 +18,10 @@ const createStudentContract = (srv: ContractService) => async (req: Request, res
 };
 
 const getStudentContracts = (srv: ContractService) => async (req: Request, res: Response): Promise<void> => {
-  const { studentId } = req.params;
+  const { username } = req.user as User;
 
   try {
-    const contracts = await srv.getStudentContracts(studentId);
+    const contracts = await srv.getStudentContracts(username);
     res.json({ contracts });
   } catch (error) {
     res.json({
@@ -43,10 +44,13 @@ const updateStudentContract = (srv: ContractService) => async (req: Request, res
   }
 };
 
-export default (router: Router, db: Pool): void => {
+export default (app: Application, db: Pool): void => {
+  const router = Router();
   const contractService = new ContractService(db);
 
-  router.post('/:studentId/contracts/', createStudentContract(contractService));
-  router.get('/:studentId/contracts/', getStudentContracts(contractService));
-  router.patch('/:studentId/contracts/:contractId', updateStudentContract(contractService));
+  router.get('/', getStudentContracts(contractService));
+  router.post('/', createStudentContract(contractService));
+  router.patch('/:contractId', updateStudentContract(contractService));
+
+  app.use('/contracts', passport.authenticate('jwt', { session: false }), router);
 };

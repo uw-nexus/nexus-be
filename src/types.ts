@@ -1,3 +1,11 @@
+export type User = {
+  id?: string;
+  username: string;
+  password?: string;
+  userType?: string;
+  provider?: string;
+};
+
 export type Student = {
   profile: StudentProfile;
   majors: string[];
@@ -5,12 +13,11 @@ export type Student = {
 };
 
 export type StudentProfile = {
-  _id?: string;
-  username?: string;
-  password?: string;
+  id?: string;
+  user?: User;
   firstName?: string;
   lastName?: string;
-  email: string;
+  email?: string;
   dob?: Date;
   school?: string;
   standing?: string;
@@ -25,7 +32,7 @@ export type Project = {
 };
 
 export type ProjectDetails = {
-  _id?: string;
+  id?: string;
   owner?: StudentProfile;
   title?: string;
   description?: string;
@@ -43,7 +50,7 @@ export type Location = {
 };
 
 export type Contract = {
-  _id?: string;
+  id?: string;
   project?: ProjectDetails;
   student?: StudentProfile;
   startDate?: Date;

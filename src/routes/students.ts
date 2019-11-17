@@ -1,14 +1,15 @@
 import { Application, Router, Request, Response } from 'express';
-import StudentService from '../services/student';
 import { Pool } from 'mysql2/promise';
-import { Student } from '../types';
-import registerContractRoutes from './contracts';
+import passport from 'passport';
+import StudentService from '../services/student';
+import { User, Student } from '../types';
 
 const createStudent = (srv: StudentService) => async (req: Request, res: Response): Promise<void> => {
   const student = req.body.student as Student;
+  const { username } = req.user as User;
 
   try {
-    const studentId = await srv.createStudent(student);
+    const studentId = await srv.createStudent(username, student);
     res.json({ studentId });
   } catch (error) {
     res.json({
@@ -18,10 +19,10 @@ const createStudent = (srv: StudentService) => async (req: Request, res: Respons
 };
 
 const getStudent = (srv: StudentService) => async (req: Request, res: Response): Promise<void> => {
-  const { studentId } = req.params;
+  const { username } = req.params;
 
   try {
-    const student = await srv.getStudent(studentId);
+    const student = await srv.getStudent(username);
     res.json({ student });
   } catch (error) {
     res.json({
@@ -31,12 +32,12 @@ const getStudent = (srv: StudentService) => async (req: Request, res: Response):
 };
 
 const updateStudent = (srv: StudentService) => async (req: Request, res: Response): Promise<void> => {
-  const { studentId } = req.params;
   const student = req.body.student as Student;
+  const { username } = req.user as User;
 
   try {
-    await srv.updateStudent(studentId, student);
-    res.json({ success: `Student id: ${studentId} updated.` });
+    await srv.updateStudent(username, student);
+    res.json({ success: `Student: ${username} updated.` });
   } catch (error) {
     res.json({
       error: (error as Error).message,
@@ -45,11 +46,11 @@ const updateStudent = (srv: StudentService) => async (req: Request, res: Respons
 };
 
 const deleteStudent = (srv: StudentService) => async (req: Request, res: Response): Promise<void> => {
-  const { studentId } = req.params;
+  const { username } = req.user as User;
 
   try {
-    await srv.getStudent(studentId);
-    res.json({ success: `Student id: ${studentId} deleted from database.` });
+    await srv.deleteStudent(username);
+    res.json({ success: `Student: ${username} deleted from database.` });
   } catch (error) {
     res.json({
       error: (error as Error).message,
@@ -61,11 +62,10 @@ export default (app: Application, db: Pool): void => {
   const router = Router();
   const studentService = new StudentService(db);
 
+  router.get('/:username', getStudent(studentService));
   router.post('/', createStudent(studentService));
-  router.get('/:studentId', getStudent(studentService));
-  router.patch('/:studentId', updateStudent(studentService));
-  router.delete('/:studentId', deleteStudent(studentService));
+  router.patch('/', updateStudent(studentService));
+  router.delete('/', deleteStudent(studentService));
 
-  registerContractRoutes(router, db);
-  app.use('/students', router);
+  app.use('/students', passport.authenticate('jwt', { session: false }), router);
 };

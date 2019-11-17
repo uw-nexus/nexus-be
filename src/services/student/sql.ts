@@ -7,17 +7,13 @@ const repeatStatement = (statement: string, items: string[]): string =>
         .join(', ')
     : `''`;
 
-// [username, password]
-const insertUser = `
-  INSERT INTO user
-  VALUES (null, (SELECT user_type_id FROM user_type WHERE name = 'Student'), ?, ?);
-`;
-
-// [userId, firstName, lastName, email, dob, school, standing, city, state, location]
+// [username, firstName, lastName, email, dob, school, standing, city, state, location]
 const insertStudent = (profile: StudentProfile): string => `
   INSERT INTO student
   VALUES (
-    null, ?, ?, ?, ?, ?, 
+    null, 
+    (SELECT user_id FROM user WHERE username = ?), 
+    ?, ?, ?, ?, 
     (SELECT school_id FROM school WHERE name = ?),
     (SELECT standing_id FROM standing WHERE name = ?),
     (
@@ -45,10 +41,17 @@ const insertStudentSkills = (skills: string[]): string => `
   VALUES ${repeatStatement(`(null, ?, (SELECT skill_id FROM skill WHERE name = ?))`, skills)};
 `;
 
+// [username]
+const getStudentId = `
+  SELECT STU.student_id AS studentId
+  FROM student STU
+  JOIN user USR ON USR.user_id = STU.user_id
+  WHERE USR.username = ?;
+`;
+
 // [studentId]
 const getStudentProfile = `
   SELECT 
-    USR.username AS username,
     STU.first_name AS firstName,
     STU.last_name AS lastName,
     STU.email AS email,
@@ -65,7 +68,7 @@ const getStudentProfile = `
   JOIN city CI ON CI.city_id = STU.city_id
   LEFT JOIN state ST ON ST.state_id = CI.state_id
   JOIN country CO ON CO.country_id = CI.country_id
-  WHERE student_id = ?;
+  WHERE STU.student_id = ?;
 `;
 
 // [studentId]
@@ -166,17 +169,13 @@ const insertNewStudentSkills = (skills: string[]): string => `
 // [studentId]
 const deleteStudentMajors = `DELETE FROM student_major WHERE student_id = ?;`;
 const deleteStudentSkills = `DELETE FROM student_skill WHERE student_id = ?;`;
-const findUserId = `SELECT user_id FROM student WHERE student_id = ?;`;
 const deleteStudent = `DELETE FROM student WHERE student_id = ?;`;
 
-// [userId]
-const deleteUser = `DELETE FROM user WHERE user_id = ?;`;
-
 export default {
-  insertUser,
   insertStudent,
   insertStudentMajors,
   insertStudentSkills,
+  getStudentId,
   getStudentProfile,
   getStudentMajors,
   getStudentSkills,
@@ -187,7 +186,5 @@ export default {
   insertNewStudentSkills,
   deleteStudentMajors,
   deleteStudentSkills,
-  findUserId,
   deleteStudent,
-  deleteUser,
 };
