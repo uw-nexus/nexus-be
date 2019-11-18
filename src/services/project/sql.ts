@@ -1,4 +1,4 @@
-import { ProjectDetails } from '../../types';
+import { ProjectDetails, Project } from '../../types';
 
 const repeatStatement = (statement: string, items: string[]): string =>
   items.length
@@ -59,8 +59,7 @@ const insertProjectCities = (locations: string[]): string => `
   ) T;
 `;
 
-// [projectId]
-const getProjectDetails = `
+const getAllProjectDetails = `
   SELECT
     U.username AS ownerUsername,
     SNC.user_id AS ownerUserId,
@@ -69,6 +68,7 @@ const getProjectDetails = `
     SNC.email AS ownerEmail,
     NPO.npo_id AS npoId,
     NPO.name AS npoName,
+    P.project_id AS projectId,
     P.title AS title,
     P.description AS description,
     P.start_date AS startDate,
@@ -85,8 +85,10 @@ const getProjectDetails = `
     (SELECT user_id, npo_id, first_name, last_name, email FROM client)
   ) SNC ON SNC.user_id = U.user_id
   LEFT JOIN npo NPO ON NPO.npo_id = SNC.npo_id
-  WHERE project_id = ?;
 `;
+
+// [projectId]
+const getProjectDetailsById = `${getAllProjectDetails} WHERE P.project_id = ?;`;
 
 // [projectId]
 const getProjectFields = `
@@ -116,6 +118,92 @@ const getProjectCities = `
   JOIN country CO ON CO.country_id = CI.country_id
   WHERE P.project_id = ?;
 `;
+
+// [f1, f2, .., s1, s2, .., l1, l2, .., offset, count, title, start, end, status]
+// lN = 'city, state, country'
+// example: [100,20] -> rows 101-120
+const searchProjects = (filters: Project): string => {
+  const { title, startDate, endDate, status } = filters.details;
+  const { fields, skills, locations } = filters;
+  const locs = locations.map(l => [l.city, l.state, l.country].join(', '));
+
+  const inner = fields.length ? 'FIELDS' : skills.length ? 'SKILLS' : 'LOCS';
+  const countSQL = [
+    fields.length ? 'FIELDS.count' : '',
+    skills.length ? 'SKILLS.count' : '',
+    locs.length ? 'LOCS.count' : '',
+  ]
+    .filter(Boolean)
+    .join(' * ');
+
+  const featuresSQL = `
+    JOIN (
+      SELECT ${inner}.project_id, ${countSQL} AS score
+      FROM
+      ${
+        fields.length
+          ? `(
+                SELECT project_id, COUNT(*) AS count
+                FROM project_field PF
+                JOIN field F ON F.field_id = PF.field_id
+                WHERE F.name IN(${repeatStatement('?', fields)})
+                GROUP BY project_id
+              ) FIELDS 
+              ${skills.length || locations.length ? 'JOIN' : ''}`
+          : ''
+      }
+      ${
+        skills.length
+          ? `(
+                SELECT project_id, COUNT(*) AS count
+                FROM project_skill PS
+                JOIN skill S ON S.skill_id = PS.skill_id
+                WHERE S.name IN(${repeatStatement('?', skills)})
+                GROUP BY project_id
+              ) SKILLS 
+              ${fields.length ? 'ON SKILLS.project_id = FIELDS.project_id' : ''}
+              ${locations.length ? 'JOIN' : ''}`
+          : ''
+      }
+      ${
+        locs.length
+          ? `(
+                SELECT project_id, COUNT(*) AS count
+                FROM project_city PC
+                JOIN city CI ON CI.city_id = PC.city_id
+                LEFT JOIN state ST ON ST.state_id = CI.state_id
+                JOIN country CO ON CO.country_id = CI.country_id
+                WHERE CONCAT(CI.name, ', ', COALESCE(ST.name, ''), ', ', CO.name) IN(${repeatStatement('?', locs)})
+                GROUP BY project_id
+              ) LOCS 
+              ${
+                fields.length || skills.length
+                  ? `ON LOCS.project_id = ${skills.length ? 'SKILLS' : 'FIELDS'}.project_id`
+                  : ''
+              }`
+          : ''
+      }
+      ORDER BY score DESC
+      LIMIT ?, ?
+    ) T ON T.project_id = P.project_id
+  `;
+
+  const detailsSQL = [
+    title ? `P.title LIKE ?` : '',
+    startDate ? `P.start_date >= ?` : '',
+    endDate ? `P.end_date <= ?` : '',
+    status ? `S.name = ?` : '',
+  ]
+    .filter(Boolean)
+    .join(' AND ');
+
+  return `
+    ${getAllProjectDetails}
+    ${fields.length || skills.length || locs.length ? featuresSQL : ''}
+    ${detailsSQL ? 'WHERE ' + detailsSQL : ''}
+    ${fields.length || skills.length || locs.length ? '' : 'LIMIT ?, ?'};
+  `;
+};
 
 // [title, description, startDate, endDate, status, projectId]
 const updateProjectDetails = (details: ProjectDetails): string => `
@@ -237,10 +325,11 @@ export default {
   insertProjectFields,
   insertProjectSkills,
   insertProjectCities,
-  getProjectDetails,
+  getProjectDetailsById,
   getProjectFields,
   getProjectSkills,
   getProjectCities,
+  searchProjects,
   updateProjectDetails,
   deleteOldProjectFields,
   insertNewProjectFields,

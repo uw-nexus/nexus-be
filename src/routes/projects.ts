@@ -18,7 +18,7 @@ const createProject = (srv: ProjectService) => async (req: Request, res: Respons
   }
 };
 
-const getProject = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
+const getProjectById = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
   const { projectId } = req.params;
 
   try {
@@ -60,14 +60,33 @@ const deleteProject = (srv: ProjectService) => async (req: Request, res: Respons
   }
 };
 
+const searchProjects = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
+  const { filters, offset, count } = req.body;
+
+  filters.details = filters.details || {};
+  filters.fields = filters.fields || [];
+  filters.skills = filters.skills || [];
+  filters.locations = filters.locations || [];
+
+  try {
+    const projects = await srv.searchProjects(filters, offset, count);
+    res.json({ projects });
+  } catch (error) {
+    res.json({
+      error: (error as Error).message,
+    });
+  }
+};
+
 export default (app: Application, db: Pool): void => {
   const router = Router();
   const projectService = new ProjectService(db);
 
   router.post('/', createProject(projectService));
-  router.get('/:projectId', getProject(projectService));
+  router.get('/:projectId', getProjectById(projectService));
   router.patch('/:projectId', updateProject(projectService));
   router.delete('/:projectId', deleteProject(projectService));
+  router.post('/search', searchProjects(projectService));
 
   app.use('/projects', passport.authenticate('jwt', { session: false }), router);
 };

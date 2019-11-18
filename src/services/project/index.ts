@@ -46,7 +46,7 @@ export default class ProjectService {
 
   async getProjectDetails(projectId: string): Promise<ProjectDetails> {
     try {
-      const [res] = await this.db.execute(SQL.getProjectDetails, [projectId]);
+      const [res] = await this.db.execute(SQL.getProjectDetailsById, [projectId]);
       let projectDetails: ProjectDetails;
 
       if (res[0]) {
@@ -147,5 +147,40 @@ export default class ProjectService {
       conn.release();
       throw err;
     }
+  }
+
+  async searchProjects(filters: Project, offset = 0, count = 10): Promise<ProjectDetails[]> {
+    const { title, startDate, endDate, status } = filters.details;
+    const { fields, skills, locations } = filters;
+
+    const locParams = locations.map(l => [l.city, l.state, l.country].join(', '));
+    const m2mParams = [...fields, ...skills, ...locParams];
+    const detailsParams = [title ? `%${title}%` : '', startDate, endDate, status];
+    let finalParams = [];
+
+    if (m2mParams.length) {
+      finalParams = [...m2mParams, offset, count, ...detailsParams];
+    } else {
+      finalParams = [...detailsParams, offset, count];
+    }
+
+    finalParams = finalParams.filter(p => p || p === 0);
+
+    const [res] = await this.db.execute(SQL.searchProjects(filters), finalParams);
+    const projects: ProjectDetails[] = (res as RowDataPacket[]).map(row => {
+      return {
+        id: row.projectId,
+        owner: {
+          user: { username: row.ownerUsername },
+          firstName: row.ownerFirstName,
+          lastName: row.ownerLastName,
+        },
+        title: row.title,
+        status: row.status,
+        createdAt: row.createdAt,
+      };
+    });
+
+    return projects;
   }
 }
