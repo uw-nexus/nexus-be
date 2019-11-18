@@ -1,7 +1,7 @@
 import { Contract } from '../../types';
 
 // [projectid, st./contractrtDate, endDate, status]
-const insertStudentContract = (contract: Contract): string => `
+export const insertStudentContract = (contract: Contract): string => `
   INSERT INTO contract
   VALUES (
     null, ?,
@@ -19,7 +19,7 @@ const insertStudentContract = (contract: Contract): string => `
 `;
 
 // [studentId]
-const getStudentContracts = `
+export const getStudentContracts = `
   SELECT
     C.contract_id AS contractId,
     C.start_date AS contractStartDate,
@@ -36,7 +36,7 @@ const getStudentContracts = `
 `;
 
 // [startDate, endDate, status, contractId]
-const updateStudentContract = (contract: Contract): string => `
+export const updateStudentContract = (contract: Contract): string => `
   UPDATE contract
   SET 
     ${[
@@ -48,9 +48,3 @@ const updateStudentContract = (contract: Contract): string => `
       .join(', ')}
   WHERE contract_id = ?;
 `;
-
-export default {
-  insertStudentContract,
-  getStudentContracts,
-  updateStudentContract,
-};

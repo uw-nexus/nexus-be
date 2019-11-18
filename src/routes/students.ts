@@ -1,6 +1,5 @@
-import { Application, Router, Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import { Pool } from 'mysql2/promise';
-import passport from 'passport';
 import StudentService from '../services/student';
 import { User, Student } from '../types';
 
@@ -58,7 +57,7 @@ const deleteStudent = (srv: StudentService) => async (req: Request, res: Respons
   }
 };
 
-export default (app: Application, db: Pool): void => {
+export default (db: Pool): Router => {
   const router = Router();
   const studentService = new StudentService(db);
 
@@ -67,5 +66,5 @@ export default (app: Application, db: Pool): void => {
   router.patch('/', updateStudent(studentService));
   router.delete('/', deleteStudent(studentService));
 
-  app.use('/students', passport.authenticate('jwt', { session: false }), router);
+  return router;
 };

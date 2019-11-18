@@ -1,6 +1,6 @@
 import { Pool, RowDataPacket } from 'mysql2/promise';
 import { Contract } from '../../types';
-import SQL from './sql';
+import * as SQL from './sql';
 
 export default class ContractService {
   db: Pool;

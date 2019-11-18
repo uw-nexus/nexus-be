@@ -1,6 +1,5 @@
-import { Application, Router, Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import { Pool } from 'mysql2/promise';
-import passport from 'passport';
 import ProjectService from '../services/project';
 import { User, Project } from '../types';
 
@@ -78,7 +77,7 @@ const searchProjects = (srv: ProjectService) => async (req: Request, res: Respon
   }
 };
 
-export default (app: Application, db: Pool): void => {
+export default (db: Pool): Router => {
   const router = Router();
   const projectService = new ProjectService(db);
 
@@ -88,5 +87,5 @@ export default (app: Application, db: Pool): void => {
   router.delete('/:projectId', deleteProject(projectService));
   router.post('/search', searchProjects(projectService));
 
-  app.use('/projects', passport.authenticate('jwt', { session: false }), router);
+  return router;
 };

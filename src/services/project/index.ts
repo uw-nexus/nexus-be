@@ -1,6 +1,6 @@
 import { Pool, RowDataPacket } from 'mysql2/promise';
 import { Project, ProjectDetails, Location } from '../../types';
-import SQL from './sql';
+import * as SQL from './sql';
 
 export default class ProjectService {
   db: Pool;

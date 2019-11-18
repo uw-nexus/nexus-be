@@ -1,6 +1,6 @@
 import { Pool } from 'mysql2/promise';
 import { User } from '../../types';
-import SQL from './sql';
+import * as SQL from './sql';
 import bcrypt from 'bcrypt';
 
 export default class UserService {

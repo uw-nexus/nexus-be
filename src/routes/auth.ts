@@ -1,9 +1,9 @@
-import { Application, Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import passport from 'passport';
-import { Pool } from 'mysql2/promise';
 import jwt from 'jsonwebtoken';
 import UserService from '../services/user';
-import config from '../config';
+import { JWT_SECRET } from '../config';
+import { Pool } from 'mysql2/promise';
 import { User } from '../types';
 
 const register = (srv: UserService) => async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -20,12 +20,12 @@ const register = (srv: UserService) => async (req: Request, res: Response, next:
 
 const generateToken = async (req: Request, res: Response): Promise<void> => {
   const { username, userType } = req.user as User;
-  const token = jwt.sign({ username, userType }, config.JWT_SECRET);
+  const token = jwt.sign({ username, userType }, JWT_SECRET);
   res.cookie('token', token, { httpOnly: true });
   res.redirect('/');
 };
 
-export default (app: Application, db: Pool): void => {
+export default (db: Pool): Router => {
   const router = Router();
   const userService = new UserService(db);
 
@@ -41,5 +41,5 @@ export default (app: Application, db: Pool): void => {
   router.get('/student/facebook', passport.authenticate('facebook-student', authOpts));
   router.get('/student/facebook/callback', passport.authenticate('facebook-student', authOpts), generateToken);
 
-  app.use('/auth', router);
+  return router;
 };

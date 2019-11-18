@@ -1,6 +1,5 @@
-import { Application, Router, Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import { Pool } from 'mysql2/promise';
-import passport from 'passport';
 import ContractService from '../services/contract';
 import { User, Contract } from '../types';
 
@@ -44,7 +43,7 @@ const updateStudentContract = (srv: ContractService) => async (req: Request, res
   }
 };
 
-export default (app: Application, db: Pool): void => {
+export default (db: Pool): Router => {
   const router = Router();
   const contractService = new ContractService(db);
 
@@ -52,5 +51,5 @@ export default (app: Application, db: Pool): void => {
   router.post('/', createStudentContract(contractService));
   router.patch('/:contractId', updateStudentContract(contractService));
 
-  app.use('/contracts', passport.authenticate('jwt', { session: false }), router);
+  return router;
 };

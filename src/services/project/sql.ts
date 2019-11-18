@@ -8,7 +8,7 @@ const repeatStatement = (statement: string, items: string[]): string =>
     : `''`;
 
 // [projectId]
-const getOwnerUsername = `
+export const getOwnerUsername = `
   SELECT U.username
   FROM user U
   JOIN project P ON P.owner_id = U.user_id
@@ -16,7 +16,7 @@ const getOwnerUsername = `
 `;
 
 // [ownerEmail, title, description, startDate, endDate]
-const insertProject = (details: ProjectDetails): string => `
+export const insertProject = (details: ProjectDetails): string => `
   INSERT INTO project
   VALUES (
     null,
@@ -33,20 +33,20 @@ const insertProject = (details: ProjectDetails): string => `
 `;
 
 // [projectId, field1, projectId, field2, ...]
-const insertProjectFields = (fields: string[]): string => `
+export const insertProjectFields = (fields: string[]): string => `
   INSERT INTO project_field
   VALUES ${repeatStatement(`(null, ?, (SELECT field_id FROM field WHERE name = ?))`, fields)};
 `;
 
 // [projectId, skill1, projectId, skill2, ...]
-const insertProjectSkills = (skills: string[]): string => `
+export const insertProjectSkills = (skills: string[]): string => `
   INSERT INTO project_skill
   VALUES ${repeatStatement(`(null, ?, (SELECT skill_id FROM skill WHERE name = ?))`, skills)};
 `;
 
 // [projectId, loc1, loc2, ...]
 // locN = 'city, state, country'
-const insertProjectCities = (locations: string[]): string => `
+export const insertProjectCities = (locations: string[]): string => `
   INSERT INTO project_city
   SELECT null, project_id, city_id
   FROM (
@@ -88,10 +88,10 @@ const getAllProjectDetails = `
 `;
 
 // [projectId]
-const getProjectDetailsById = `${getAllProjectDetails} WHERE P.project_id = ?;`;
+export const getProjectDetailsById = `${getAllProjectDetails} WHERE P.project_id = ?;`;
 
 // [projectId]
-const getProjectFields = `
+export const getProjectFields = `
   SELECT F.name AS field
   FROM project P
   JOIN project_field PF ON PF.project_id = P.project_id
@@ -100,7 +100,7 @@ const getProjectFields = `
 `;
 
 // [projectId]
-const getProjectSkills = `
+export const getProjectSkills = `
   SELECT SK.name AS skill
   FROM project P
   JOIN project_skill PS ON PS.project_id = P.project_id
@@ -109,7 +109,7 @@ const getProjectSkills = `
 `;
 
 // [projectId]
-const getProjectCities = `
+export const getProjectCities = `
   SELECT CI.name AS city, ST.name AS state, CO.name AS country
   FROM project P
   JOIN project_city PC ON PC.project_id = P.project_id
@@ -122,7 +122,7 @@ const getProjectCities = `
 // [f1, f2, .., s1, s2, .., l1, l2, .., offset, count, title, start, end, status]
 // lN = 'city, state, country'
 // example: [100,20] -> rows 101-120
-const searchProjects = (filters: Project): string => {
+export const searchProjects = (filters: Project): string => {
   const { title, startDate, endDate, status } = filters.details;
   const { fields, skills, locations } = filters;
   const locs = locations.map(l => [l.city, l.state, l.country].join(', '));
@@ -206,7 +206,7 @@ const searchProjects = (filters: Project): string => {
 };
 
 // [title, description, startDate, endDate, status, projectId]
-const updateProjectDetails = (details: ProjectDetails): string => `
+export const updateProjectDetails = (details: ProjectDetails): string => `
   UPDATE project
   SET
     ${[
@@ -222,7 +222,7 @@ const updateProjectDetails = (details: ProjectDetails): string => `
 `;
 
 // [projectId, field1, field2, ...]
-const deleteOldProjectFields = (fields: string[]): string => `
+export const deleteOldProjectFields = (fields: string[]): string => `
   DELETE PF
   FROM project_field PF
   JOIN field F ON F.field_id = PF.field_id
@@ -231,7 +231,7 @@ const deleteOldProjectFields = (fields: string[]): string => `
 `;
 
 // [projectId, field1, ..., fieldN, projectId]
-const insertNewProjectFields = (fields: string[]): string => `
+export const insertNewProjectFields = (fields: string[]): string => `
   INSERT INTO project_field
   SELECT null, project_id, field_id
   FROM (
@@ -249,7 +249,7 @@ const insertNewProjectFields = (fields: string[]): string => `
 `;
 
 // [projectId, skill1, skill2, ...]
-const deleteOldProjectSkills = (skills: string[]): string => `
+export const deleteOldProjectSkills = (skills: string[]): string => `
   DELETE PS
   FROM project_skill PS
   JOIN skill S ON S.skill_id = PS.skill_id
@@ -258,7 +258,7 @@ const deleteOldProjectSkills = (skills: string[]): string => `
 `;
 
 // [projectId, skill1, ..., skillN, projectId]
-const insertNewProjectSkills = (skills: string[]): string => `
+export const insertNewProjectSkills = (skills: string[]): string => `
   INSERT INTO project_skill
   SELECT null, project_id, skill_id
   FROM (
@@ -277,7 +277,7 @@ const insertNewProjectSkills = (skills: string[]): string => `
 
 // [projectId, loc1, loc2, ...]
 // locN = 'city, state, country'
-const deleteOldProjectCities = (locations: string[]): string => `
+export const deleteOldProjectCities = (locations: string[]): string => `
   DELETE PC
   FROM project_city PC
     JOIN city CI ON CI.city_id = PC.city_id
@@ -289,7 +289,7 @@ const deleteOldProjectCities = (locations: string[]): string => `
 
 // [projectId, loc1, ..., locN, projectId]
 // locN = 'city, state, country'
-const insertNewProjectCities = (locations: string[]): string => `
+export const insertNewProjectCities = (locations: string[]): string => `
   INSERT INTO project_city
   SELECT null, project_id, city_id
   FROM (
@@ -314,31 +314,7 @@ const insertNewProjectCities = (locations: string[]): string => `
 `;
 
 // [projectId]
-const deleteProjectFields = `DELETE FROM project_field WHERE project_id = ?;`;
-const deleteProjectSkills = `DELETE FROM project_skill WHERE project_id = ?;`;
-const deleteProjectCities = `DELETE FROM project_city WHERE project_id = ?;`;
-const deleteProject = `DELETE FROM project WHERE project_id = ?;`;
-
-export default {
-  getOwnerUsername,
-  insertProject,
-  insertProjectFields,
-  insertProjectSkills,
-  insertProjectCities,
-  getProjectDetailsById,
-  getProjectFields,
-  getProjectSkills,
-  getProjectCities,
-  searchProjects,
-  updateProjectDetails,
-  deleteOldProjectFields,
-  insertNewProjectFields,
-  deleteOldProjectSkills,
-  insertNewProjectSkills,
-  deleteOldProjectCities,
-  insertNewProjectCities,
-  deleteProjectFields,
-  deleteProjectSkills,
-  deleteProjectCities,
-  deleteProject,
-};
+export const deleteProjectFields = `DELETE FROM project_field WHERE project_id = ?;`;
+export const deleteProjectSkills = `DELETE FROM project_skill WHERE project_id = ?;`;
+export const deleteProjectCities = `DELETE FROM project_city WHERE project_id = ?;`;
+export const deleteProject = `DELETE FROM project WHERE project_id = ?;`;

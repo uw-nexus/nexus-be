@@ -8,7 +8,7 @@ const repeatStatement = (statement: string, items: string[]): string =>
     : `''`;
 
 // [username, firstName, lastName, email, dob, school, standing, city, state, location]
-const insertStudent = (profile: StudentProfile): string => `
+export const insertStudent = (profile: StudentProfile): string => `
   INSERT INTO student
   VALUES (
     null, 
@@ -30,19 +30,19 @@ const insertStudent = (profile: StudentProfile): string => `
 `;
 
 // [studentId, major1, studentId, major2, ...]
-const insertStudentMajors = (majors: string[]): string => `
+export const insertStudentMajors = (majors: string[]): string => `
   INSERT INTO student_major
   VALUES ${repeatStatement(`(null, ?, (SELECT major_id FROM major WHERE name = ?))`, majors)};
 `;
 
 // [studentId, skill1, studentId, skill2, ...]
-const insertStudentSkills = (skills: string[]): string => `
+export const insertStudentSkills = (skills: string[]): string => `
   INSERT INTO student_skill
   VALUES ${repeatStatement(`(null, ?, (SELECT skill_id FROM skill WHERE name = ?))`, skills)};
 `;
 
 // [username]
-const getStudentId = `
+export const getStudentId = `
   SELECT STU.student_id AS studentId
   FROM student STU
   JOIN user USR ON USR.user_id = STU.user_id
@@ -50,7 +50,7 @@ const getStudentId = `
 `;
 
 // [studentId]
-const getStudentProfile = `
+export const getStudentProfile = `
   SELECT 
     STU.first_name AS firstName,
     STU.last_name AS lastName,
@@ -72,7 +72,7 @@ const getStudentProfile = `
 `;
 
 // [studentId]
-const getStudentMajors = `
+export const getStudentMajors = `
   SELECT M.name AS major
   FROM student STU
   JOIN student_major SM ON SM.student_id = STU.student_id
@@ -81,7 +81,7 @@ const getStudentMajors = `
 `;
 
 // [studentId]
-const getStudentSkills = `
+export const getStudentSkills = `
   SELECT SK.name AS skill
   FROM student STU
   JOIN student_skill SS ON SS.student_id = STU.student_id
@@ -90,7 +90,7 @@ const getStudentSkills = `
 `;
 
 // [school, standing, city, state, country, studentId]
-const updateStudentProfile = (profile: StudentProfile): string => `
+export const updateStudentProfile = (profile: StudentProfile): string => `
   UPDATE student
   SET ${[
     profile.school ? `school_id = (SELECT school_id FROM school WHERE name = ?)` : '',
@@ -113,7 +113,7 @@ const updateStudentProfile = (profile: StudentProfile): string => `
 `;
 
 // [studentId, major1, major2, ...]
-const deleteOldStudentMajors = (majors: string[]): string => `
+export const deleteOldStudentMajors = (majors: string[]): string => `
   DELETE SM
   FROM student_major SM
   JOIN major M ON M.major_id = SM.major_id
@@ -122,7 +122,7 @@ const deleteOldStudentMajors = (majors: string[]): string => `
 `;
 
 // [studentId, major1, ..., majorN, studentId]
-const insertNewStudentMajors = (majors: string[]): string => `
+export const insertNewStudentMajors = (majors: string[]): string => `
   INSERT INTO student_major
   SELECT null, student_id, major_id
   FROM (
@@ -140,7 +140,7 @@ const insertNewStudentMajors = (majors: string[]): string => `
 `;
 
 // [studentId, skill1, skill2, ...]
-const deleteOldStudentSkills = (skills: string[]): string => `
+export const deleteOldStudentSkills = (skills: string[]): string => `
   DELETE SS
   FROM student_skill SS
   JOIN skill SK ON SK.skill_id = SS.skill_id
@@ -149,7 +149,7 @@ const deleteOldStudentSkills = (skills: string[]): string => `
 `;
 
 // [studentId, skill1, ..., skillN, studentId]
-const insertNewStudentSkills = (skills: string[]): string => `
+export const insertNewStudentSkills = (skills: string[]): string => `
   INSERT INTO student_skill
   SELECT null, student_id, skill_id
   FROM (
@@ -167,24 +167,6 @@ const insertNewStudentSkills = (skills: string[]): string => `
 `;
 
 // [studentId]
-const deleteStudentMajors = `DELETE FROM student_major WHERE student_id = ?;`;
-const deleteStudentSkills = `DELETE FROM student_skill WHERE student_id = ?;`;
-const deleteStudent = `DELETE FROM student WHERE student_id = ?;`;
-
-export default {
-  insertStudent,
-  insertStudentMajors,
-  insertStudentSkills,
-  getStudentId,
-  getStudentProfile,
-  getStudentMajors,
-  getStudentSkills,
-  updateStudentProfile,
-  deleteOldStudentMajors,
-  insertNewStudentMajors,
-  deleteOldStudentSkills,
-  insertNewStudentSkills,
-  deleteStudentMajors,
-  deleteStudentSkills,
-  deleteStudent,
-};
+export const deleteStudentMajors = `DELETE FROM student_major WHERE student_id = ?;`;
+export const deleteStudentSkills = `DELETE FROM student_skill WHERE student_id = ?;`;
+export const deleteStudent = `DELETE FROM student WHERE student_id = ?;`;

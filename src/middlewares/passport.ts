@@ -1,4 +1,4 @@
-import config from '../config';
+import { JWT_SECRET, FACEBOOK_APP_ID, FACEBOOK_APP_SECRET } from '../config';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
@@ -33,7 +33,7 @@ const local = (srv: UserService): LocalStrategy => {
 const jwt = (srv: UserService): JwtStrategy => {
   const jwtOpts = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: config.JWT_SECRET,
+    secretOrKey: JWT_SECRET,
   };
 
   return new JwtStrategy(jwtOpts, async (payload, done) => {
@@ -48,8 +48,8 @@ const jwt = (srv: UserService): JwtStrategy => {
 
 const fb = (srv: UserService, userType: string): FacebookStrategy => {
   const fbOpts: FacebookOptionsWR = {
-    clientID: config.FACEBOOK_APP_ID,
-    clientSecret: config.FACEBOOK_APP_SECRET,
+    clientID: FACEBOOK_APP_ID,
+    clientSecret: FACEBOOK_APP_SECRET,
     callbackURL: `/auth/${userType.toLowerCase()}/facebook/callback`,
     profileFields: ['id', 'name', 'picture', 'email'],
     passReqToCallback: true,
