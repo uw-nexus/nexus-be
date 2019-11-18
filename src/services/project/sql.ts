@@ -94,7 +94,7 @@ const getProjectFields = `
   FROM project P
   JOIN project_field PF ON PF.project_id = P.project_id
   JOIN field F ON F.field_id = PF.field_id
-  WHERE project_id = ?;
+  WHERE P.project_id = ?;
 `;
 
 // [projectId]
@@ -103,7 +103,7 @@ const getProjectSkills = `
   FROM project P
   JOIN project_skill PS ON PS.project_id = P.project_id
   JOIN skill SK ON SK.skill_id = PS.skill_id
-  WHERE project_id = ?;
+  WHERE P.project_id = ?;
 `;
 
 // [projectId]
@@ -114,7 +114,7 @@ const getProjectCities = `
   JOIN city CI ON CI.city_id = PC.city_id
   LEFT JOIN state ST ON ST.state_id = CI.state_id
   JOIN country CO ON CO.country_id = CI.country_id
-  WHERE project_id = ?;
+  WHERE P.project_id = ?;
 `;
 
 // [title, description, startDate, endDate, status, projectId]
