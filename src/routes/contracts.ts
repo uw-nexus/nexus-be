@@ -21,7 +21,7 @@ const getStudentContracts = (srv: ContractService) => async (req: Request, res: 
 
   try {
     const contracts = await srv.getStudentContracts(username);
-    res.json({ contracts });
+    res.json(contracts);
   } catch (error) {
     res.json({
       error: (error as Error).message,

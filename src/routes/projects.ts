@@ -22,7 +22,7 @@ const getProjectById = (srv: ProjectService) => async (req: Request, res: Respon
 
   try {
     const project = await srv.getProject(projectId);
-    res.json({ project });
+    res.json(project);
   } catch (error) {
     res.json({
       error: (error as Error).message,
@@ -69,7 +69,7 @@ const searchProjects = (srv: ProjectService) => async (req: Request, res: Respon
 
   try {
     const projects = await srv.searchProjects(filters, offset, count);
-    res.json({ projects });
+    res.json(projects);
   } catch (error) {
     res.json({
       error: (error as Error).message,

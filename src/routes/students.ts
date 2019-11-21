@@ -22,7 +22,7 @@ const getStudent = (srv: StudentService) => async (req: Request, res: Response):
 
   try {
     const student = await srv.getStudent(username);
-    res.json({ student });
+    res.json(student);
   } catch (error) {
     res.json({
       error: (error as Error).message,
