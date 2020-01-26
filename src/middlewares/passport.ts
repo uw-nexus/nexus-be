@@ -12,6 +12,7 @@ import {
 
 import UserService from '../services/user';
 import { Pool } from 'mysql2/promise';
+import { Request } from 'express';
 
 const local = (srv: UserService): LocalStrategy => {
   return new LocalStrategy(async (username, password, done) => {
@@ -31,8 +32,10 @@ const local = (srv: UserService): LocalStrategy => {
 };
 
 const jwt = (srv: UserService): JwtStrategy => {
+  const getJwtCookie = (req: Request): string => (req.cookies ? req.cookies.jwt : null);
+
   const jwtOpts = {
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    jwtFromRequest: ExtractJwt.fromExtractors([getJwtCookie]),
     secretOrKey: JWT_SECRET,
   };
 

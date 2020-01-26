@@ -1,14 +1,14 @@
 import { Router, Request, Response } from 'express';
 import { Pool } from 'mysql2/promise';
 import StudentService from '../services/student';
-import { User, Student } from '../types';
+import { User, Student, StudentProfile } from '../types';
 
 const createStudent = (srv: StudentService) => async (req: Request, res: Response): Promise<void> => {
-  const student = req.body.student as Student;
+  const profile = req.body as StudentProfile;
   const { username } = req.user as User;
 
   try {
-    const studentId = await srv.createStudent(username, student);
+    const studentId = await srv.createStudent(username, profile);
     res.json({ studentId });
   } catch (error) {
     res.json({
