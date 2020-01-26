@@ -20,8 +20,8 @@ const register = (srv: UserService) => async (req: Request, res: Response, next:
 
 const generateToken = async (req: Request, res: Response): Promise<void> => {
   const { username, userType } = req.user as User;
-  const token = jwt.sign({ username, userType }, JWT_SECRET);
-  res.cookie('token', token, { httpOnly: true });
+  const token = jwt.sign({ username, userType }, JWT_SECRET, { expiresIn: '7d' });
+  res.cookie('jwt', token, { httpOnly: true });
   res.redirect('/');
 };
 

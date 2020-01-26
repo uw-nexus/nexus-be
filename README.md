@@ -12,6 +12,7 @@ Define your environment variables in a `.env` file, in KEY=VALUE format.
 
 | ENV | Default | Description |
 | --- | ------- | ----------- |
+| FE_ADDR | http://localhost:3000 | Frontend service address |
 | PORT | 3100 | Port exposed to serve backend |
 | DB_HOST | localhost | MySQL hostname |
 | DB_PORT | 3306 | MySQL port |
