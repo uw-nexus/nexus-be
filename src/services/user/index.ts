@@ -24,11 +24,11 @@ export default class UserService {
   }
 
   async findUser(username: string): Promise<User> {
-    try {
-      const [res] = await this.db.execute(SQL.findUser, [username]);
+    const [res] = await this.db.execute(SQL.findUser, [username]);
+    if (res[0]) {
       return res[0] as User;
-    } catch (err) {
-      throw new Error(`error finding user: ${err}`);
+    } else {
+      throw new Error(`user not found`);
     }
   }
 

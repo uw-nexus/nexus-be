@@ -7,38 +7,14 @@ const repeatStatement = (statement: string, items: string[]): string =>
         .join(', ')
     : `''`;
 
-// [username, firstName, lastName, email, dob, school, standing, city, state, location]
-export const insertStudent = (profile: StudentProfile): string => `
-  INSERT INTO student
+// [username, firstName, lastName, email]
+export const insertStudent = `
+  INSERT INTO student(user_id, first_name, last_name, email, joined_at)
   VALUES (
-    null, 
     (SELECT user_id FROM user WHERE username = ?), 
-    ?, ?, ?, ?, 
-    (SELECT school_id FROM school WHERE name = ?),
-    (SELECT standing_id FROM standing WHERE name = ?),
-    (
-      SELECT CI.city_id
-      FROM city CI
-      LEFT JOIN state ST ON ST.state_id = CI.state_id
-      JOIN country CO ON CO.country_id = CI.country_id
-      WHERE CI.name = ?
-      ${profile.location.state ? 'AND (ST.name IS NULL OR ST.name = ?)' : ''}
-      AND CO.name = ?
-    ),
+    ?, ?, ?, 
     CURDATE()
   );
-`;
-
-// [studentId, major1, studentId, major2, ...]
-export const insertStudentMajors = (majors: string[]): string => `
-  INSERT INTO student_major
-  VALUES ${repeatStatement(`(null, ?, (SELECT major_id FROM major WHERE name = ?))`, majors)};
-`;
-
-// [studentId, skill1, studentId, skill2, ...]
-export const insertStudentSkills = (skills: string[]): string => `
-  INSERT INTO student_skill
-  VALUES ${repeatStatement(`(null, ?, (SELECT skill_id FROM skill WHERE name = ?))`, skills)};
 `;
 
 // [username]

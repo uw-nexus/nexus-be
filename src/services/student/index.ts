@@ -9,38 +9,17 @@ export default class StudentService {
     this.db = promisePool;
   }
 
-  async createStudent(username: string, student: Student): Promise<string> {
-    const { profile, majors, skills } = student;
+  async createStudent(username: string, profile: StudentProfile): Promise<string> {
+    const { firstName, lastName, email } = profile;
     const conn = await this.db.getConnection();
 
     try {
       conn.beginTransaction();
 
-      const studentParams = [
-        username,
-        profile.firstName,
-        profile.lastName,
-        profile.email,
-        profile.dob,
-        profile.school,
-        profile.standing,
-        profile.location.city,
-        profile.location.state,
-        profile.location.country,
-      ].filter(Boolean);
+      const studentParams = [username, firstName, lastName, email];
 
-      const [studentRes] = await conn.execute(SQL.insertStudent(profile), studentParams);
+      const [studentRes] = await conn.execute(SQL.insertStudent, studentParams);
       const studentId = studentRes['insertId'];
-
-      if (majors && majors.length) {
-        const majorsParams = majors.reduce((acc, cur) => acc.concat(studentId, cur), []);
-        await conn.execute(SQL.insertStudentMajors(majors), majorsParams);
-      }
-
-      if (skills && skills.length) {
-        const skillsParams = skills.reduce((acc, cur) => acc.concat(studentId, cur), []);
-        await conn.execute(SQL.insertStudentSkills(skills), skillsParams);
-      }
 
       await conn.commit();
       conn.release();

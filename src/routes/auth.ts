@@ -7,7 +7,7 @@ import { Pool } from 'mysql2/promise';
 import { User } from '../types';
 
 const register = (srv: UserService) => async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const user = req.body.user as User;
+  const user = req.body as User;
 
   try {
     user.id = await srv.createUser(user);
