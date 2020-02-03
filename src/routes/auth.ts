@@ -22,7 +22,12 @@ const generateToken = async (req: Request, res: Response): Promise<void> => {
   const { username, userType, provider } = req.user as User;
   const token = jwt.sign({ username, userType }, JWT_SECRET, { expiresIn: '7d' });
   res.cookie('jwt', token, { httpOnly: true });
-  res.redirect(provider ? FE_ADDR : '/');
+
+  if (provider) {
+    res.redirect(FE_ADDR);
+  } else {
+    res.json({ authenticated: true });
+  }
 };
 
 export default (db: Pool): Router => {
@@ -34,6 +39,8 @@ export default (db: Pool): Router => {
     scope: ['email'],
     failureRedirect: '/login',
   };
+
+  router.get('/verify', passport.authenticate('jwt', { session: false }), generateToken);
 
   router.post('/register', register(userService), generateToken);
   router.post('/login', passport.authenticate('local', authOpts), generateToken);
