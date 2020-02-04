@@ -69,6 +69,7 @@ export const getStudentSkills = `
 export const updateStudentProfile = (profile: StudentProfile): string => `
   UPDATE student
   SET ${[
+    profile.dob ? `dob = ?` : '',
     profile.school ? `school_id = (SELECT school_id FROM school WHERE name = ?)` : '',
     profile.standing ? `standing_id = (SELECT standing_id FROM standing WHERE name = ?)` : '',
     profile.location
