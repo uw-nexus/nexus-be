@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
 import UserService from '../services/user';
-import { JWT_SECRET } from '../config';
+import { JWT_SECRET, FE_ADDR } from '../config';
 import { Pool } from 'mysql2/promise';
 import { User } from '../types';
 
@@ -19,10 +19,15 @@ const register = (srv: UserService) => async (req: Request, res: Response, next:
 };
 
 const generateToken = async (req: Request, res: Response): Promise<void> => {
-  const { username, userType } = req.user as User;
+  const { username, userType, provider } = req.user as User;
   const token = jwt.sign({ username, userType }, JWT_SECRET, { expiresIn: '7d' });
   res.cookie('jwt', token, { httpOnly: true });
-  res.redirect('/');
+
+  if (provider) {
+    res.redirect(FE_ADDR);
+  } else {
+    res.json({ authenticated: true });
+  }
 };
 
 export default (db: Pool): Router => {
@@ -34,6 +39,8 @@ export default (db: Pool): Router => {
     scope: ['email'],
     failureRedirect: '/login',
   };
+
+  router.get('/verify', passport.authenticate('jwt', { session: false }), generateToken);
 
   router.post('/register', register(userService), generateToken);
   router.post('/login', passport.authenticate('local', authOpts), generateToken);

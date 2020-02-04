@@ -90,19 +90,27 @@ export default class StudentService {
       conn.beginTransaction();
       const studentId = await this.getStudentId(username);
 
-      const profileParams = [
-        profile.school,
-        profile.standing,
-        profile.location.city,
-        profile.location.state,
-        profile.location.country,
-      ].filter(Boolean);
+      if (profile) {
+        const profileParams = [
+          profile.dob,
+          profile.school,
+          profile.standing,
+          profile.location ? profile.location.city : '',
+          profile.location ? profile.location.state : '',
+          profile.location ? profile.location.country : '',
+        ].filter(Boolean);
+        await conn.execute(SQL.updateStudentProfile(profile), [...profileParams, studentId]);
+      }
 
-      await conn.execute(SQL.updateStudentProfile(profile), [...profileParams, studentId]);
-      await conn.execute(SQL.deleteOldStudentMajors(majors), [studentId, ...majors]);
-      await conn.execute(SQL.insertNewStudentMajors(majors), [studentId, ...majors, studentId]);
-      await conn.execute(SQL.deleteOldStudentSkills(skills), [studentId, ...skills]);
-      await conn.execute(SQL.insertNewStudentSkills(skills), [studentId, ...skills, studentId]);
+      if (majors) {
+        await conn.execute(SQL.deleteOldStudentMajors(majors), [studentId, ...majors]);
+        await conn.execute(SQL.insertNewStudentMajors(majors), [studentId, ...majors, studentId]);
+      }
+
+      if (skills) {
+        await conn.execute(SQL.deleteOldStudentSkills(skills), [studentId, ...skills]);
+        await conn.execute(SQL.insertNewStudentSkills(skills), [studentId, ...skills, studentId]);
+      }
 
       await conn.commit();
       conn.release();
