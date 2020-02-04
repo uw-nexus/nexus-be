@@ -27,7 +27,7 @@ const local = (srv: UserService): LocalStrategy => {
         return done('Incorrect username or password');
       }
     } catch (error) {
-      done(error);
+      done('User not found');
     }
   });
 };
@@ -45,7 +45,7 @@ const jwt = (srv: UserService): JwtStrategy => {
       const user = await srv.findUser(payload.username);
       done(null, user);
     } catch (error) {
-      done(error);
+      done('User not found');
     }
   });
 };
@@ -84,7 +84,7 @@ const fb = (userSrv: UserService, profileSrv: StudentService, userType: string):
           email: userData['email'],
         });
       } catch (error) {
-        done(error);
+        done('Failed to create account');
       }
     }
 
