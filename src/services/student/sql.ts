@@ -39,11 +39,11 @@ export const getStudentProfile = `
     CO.name AS country
   FROM student STU
   JOIN user USR ON USR.user_id = STU.user_id
-  JOIN school SCH ON SCH.school_id = STU.school_id
-  JOIN standing STA ON STA.standing_id = STU.standing_id
-  JOIN city CI ON CI.city_id = STU.city_id
+  LEFT JOIN school SCH ON SCH.school_id = STU.school_id
+  LEFT JOIN standing STA ON STA.standing_id = STU.standing_id
+  LEFT JOIN city CI ON CI.city_id = STU.city_id
   LEFT JOIN state ST ON ST.state_id = CI.state_id
-  JOIN country CO ON CO.country_id = CI.country_id
+  LEFT JOIN country CO ON CO.country_id = CI.country_id
   WHERE STU.student_id = ?;
 `;
 
