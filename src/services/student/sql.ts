@@ -116,6 +116,11 @@ export const insertNewStudentMajors = (majors: string[]): string => `
   ) T;
 `;
 
+export const addToSkillsCatalog = (skills: string[]): string => `
+  INSERT IGNORE INTO skill(name)
+  VALUES ${repeatStatement('(?)', skills)};
+`;
+
 // [studentId, skill1, skill2, ...]
 export const deleteOldStudentSkills = (skills: string[]): string => `
   DELETE SS

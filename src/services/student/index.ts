@@ -108,6 +108,7 @@ export default class StudentService {
       }
 
       if (skills) {
+        await conn.execute(SQL.addToSkillsCatalog(skills), skills);
         await conn.execute(SQL.deleteOldStudentSkills(skills), [studentId, ...skills]);
         await conn.execute(SQL.insertNewStudentSkills(skills), [studentId, ...skills, studentId]);
       }
