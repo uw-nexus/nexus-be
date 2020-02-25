@@ -36,6 +36,7 @@ export const getStudentProfile = `
     STA.name AS standing,
     M1.name AS major1,
     M2.name AS major2,
+    STU.photo_url AS photoUrl,
     CI.name AS city,
     ST.name AS state,
     CO.name AS country

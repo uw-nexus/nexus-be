@@ -56,6 +56,7 @@ export default class StudentService {
         standing: res[0].standing || '',
         major1: res[0].major1 || '',
         major2: res[0].major2 || '',
+        photoUrl: res[0].photoUrl,
         location: {
           city: res[0].city,
           state: res[0].state,

@@ -22,6 +22,7 @@ export type StudentProfile = {
   standing?: string;
   major1?: string;
   major2?: string;
+  photoUrl?: string;
   location?: Location;
 };
 
