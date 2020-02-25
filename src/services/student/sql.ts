@@ -34,25 +34,21 @@ export const getStudentProfile = `
     STU.dob AS dob,
     SCH.name AS school,
     STA.name AS standing,
+    M1.name AS major1,
+    M2.name AS major2,
+    STU.photo_url AS photoUrl,
     CI.name AS city,
     ST.name AS state,
     CO.name AS country
   FROM student STU
   JOIN user USR ON USR.user_id = STU.user_id
-  JOIN school SCH ON SCH.school_id = STU.school_id
-  JOIN standing STA ON STA.standing_id = STU.standing_id
-  JOIN city CI ON CI.city_id = STU.city_id
+  LEFT JOIN school SCH ON SCH.school_id = STU.school_id
+  LEFT JOIN standing STA ON STA.standing_id = STU.standing_id
+  LEFT JOIN major M1 ON M1.major_id = STU.major1_id
+  LEFT JOIN major M2 ON M2.major_id = STU.major2_id
+  LEFT JOIN city CI ON CI.city_id = STU.city_id
   LEFT JOIN state ST ON ST.state_id = CI.state_id
-  JOIN country CO ON CO.country_id = CI.country_id
-  WHERE STU.student_id = ?;
-`;
-
-// [studentId]
-export const getStudentMajors = `
-  SELECT M.name AS major
-  FROM student STU
-  JOIN student_major SM ON SM.student_id = STU.student_id
-  JOIN major M ON M.major_id = SM.major_id
+  LEFT JOIN country CO ON CO.country_id = CI.country_id
   WHERE STU.student_id = ?;
 `;
 
@@ -65,13 +61,15 @@ export const getStudentSkills = `
   WHERE STU.student_id = ?;
 `;
 
-// [school, standing, city, state, country, studentId]
+// [dob, school, standing, major1, major2, city, state, country, studentId]
 export const updateStudentProfile = (profile: StudentProfile): string => `
   UPDATE student
   SET ${[
     profile.dob ? `dob = ?` : '',
     profile.school ? `school_id = (SELECT school_id FROM school WHERE name = ?)` : '',
     profile.standing ? `standing_id = (SELECT standing_id FROM standing WHERE name = ?)` : '',
+    profile.major1 ? `major1_id = (SELECT major_id FROM major WHERE name = ?)` : '',
+    profile.major2 ? `major2_id = (SELECT major_id FROM major WHERE name = ?)` : '',
     profile.location
       ? `city_id = (
           SELECT CI.city_id
@@ -89,31 +87,9 @@ export const updateStudentProfile = (profile: StudentProfile): string => `
   WHERE student_id = ?;
 `;
 
-// [studentId, major1, major2, ...]
-export const deleteOldStudentMajors = (majors: string[]): string => `
-  DELETE SM
-  FROM student_major SM
-  JOIN major M ON M.major_id = SM.major_id
-  WHERE SM.student_id = ?
-  AND M.name NOT IN(${repeatStatement('?', majors)});
-`;
-
-// [studentId, major1, ..., majorN, studentId]
-export const insertNewStudentMajors = (majors: string[]): string => `
-  INSERT INTO student_major
-  SELECT null, student_id, major_id
-  FROM (
-    SELECT ? AS student_id, M1.major_id
-    FROM major M1
-    WHERE M1.name IN(${repeatStatement('?', majors)})
-    AND NOT EXISTS (
-      SELECT *
-      FROM student_major SM
-      JOIN major M2 ON M2.major_id = SM.major_id
-      WHERE student_id = ?
-      AND M2.name = M1.name
-    )
-  ) T;
+export const addToSkillsCatalog = (skills: string[]): string => `
+  INSERT IGNORE INTO skill(name)
+  VALUES ${repeatStatement('(?)', skills)};
 `;
 
 // [studentId, skill1, skill2, ...]
@@ -144,6 +120,5 @@ export const insertNewStudentSkills = (skills: string[]): string => `
 `;
 
 // [studentId]
-export const deleteStudentMajors = `DELETE FROM student_major WHERE student_id = ?;`;
 export const deleteStudentSkills = `DELETE FROM student_skill WHERE student_id = ?;`;
 export const deleteStudent = `DELETE FROM student WHERE student_id = ?;`;
