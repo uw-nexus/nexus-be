@@ -52,8 +52,10 @@ export default class StudentService {
         lastName: res[0].lastName,
         email: res[0].email,
         dob: new Date(res[0].dob),
-        school: res[0].school,
-        standing: res[0].standing,
+        school: res[0].school || '',
+        standing: res[0].standing || '',
+        major1: res[0].major1 || '',
+        major2: res[0].major2 || '',
         location: {
           city: res[0].city,
           state: res[0].state,
@@ -70,12 +72,10 @@ export default class StudentService {
     const studentProfile = await this.getStudentProfile(username, studentId);
     if (!studentProfile) return null;
 
-    const [majorsRes] = await this.db.execute(SQL.getStudentMajors, [studentId]);
     const [skillsRes] = await this.db.execute(SQL.getStudentSkills, [studentId]);
 
     const student = {
       profile: studentProfile,
-      majors: (majorsRes as RowDataPacket[]).map(row => row.major),
       skills: (skillsRes as RowDataPacket[]).map(row => row.skill),
     };
 
@@ -83,7 +83,7 @@ export default class StudentService {
   }
 
   async updateStudent(username: string, student: Student): Promise<void> {
-    const { profile, majors, skills } = student;
+    const { profile, skills } = student;
     const conn = await this.db.getConnection();
 
     try {
@@ -95,16 +95,13 @@ export default class StudentService {
           profile.dob,
           profile.school,
           profile.standing,
+          profile.major1,
+          profile.major2,
           profile.location ? profile.location.city : '',
           profile.location ? profile.location.state : '',
           profile.location ? profile.location.country : '',
         ].filter(Boolean);
         await conn.execute(SQL.updateStudentProfile(profile), [...profileParams, studentId]);
-      }
-
-      if (majors) {
-        await conn.execute(SQL.deleteOldStudentMajors(majors), [studentId, ...majors]);
-        await conn.execute(SQL.insertNewStudentMajors(majors), [studentId, ...majors, studentId]);
       }
 
       if (skills) {
@@ -128,7 +125,6 @@ export default class StudentService {
     try {
       conn.beginTransaction();
       const studentId = await this.getStudentId(username);
-      await conn.execute(SQL.deleteStudentMajors, [studentId]);
       await conn.execute(SQL.deleteStudentSkills, [studentId]);
       await conn.execute(SQL.deleteStudent, [studentId]);
       await conn.commit();

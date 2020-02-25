@@ -8,7 +8,6 @@ export type User = {
 
 export type Student = {
   profile: StudentProfile;
-  majors: string[];
   skills: string[];
 };
 
@@ -21,6 +20,8 @@ export type StudentProfile = {
   dob?: Date;
   school?: string;
   standing?: string;
+  major1?: string;
+  major2?: string;
   location?: Location;
 };
 
