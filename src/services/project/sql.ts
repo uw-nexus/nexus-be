@@ -32,33 +32,6 @@ export const insertProject = (details: ProjectDetails): string => `
   );
 `;
 
-// [projectId, field1, projectId, field2, ...]
-export const insertProjectFields = (fields: string[]): string => `
-  INSERT INTO project_field
-  VALUES ${repeatStatement(`(null, ?, (SELECT field_id FROM field WHERE name = ?))`, fields)};
-`;
-
-// [projectId, skill1, projectId, skill2, ...]
-export const insertProjectSkills = (skills: string[]): string => `
-  INSERT INTO project_skill
-  VALUES ${repeatStatement(`(null, ?, (SELECT skill_id FROM skill WHERE name = ?))`, skills)};
-`;
-
-// [projectId, loc1, loc2, ...]
-// locN = 'city, state, country'
-export const insertProjectCities = (locations: string[]): string => `
-  INSERT INTO project_city
-  SELECT null, project_id, city_id
-  FROM (
-    SELECT ? AS project_id, CI.city_id
-    FROM city CI
-      LEFT JOIN state ST ON ST.state_id = CI.state_id
-      JOIN country CO ON CO.country_id = CI.country_id
-    WHERE
-      CONCAT(CI.name, ', ', COALESCE(ST.name, ''), ', ', CO.name) IN(${repeatStatement('?', locations)})
-  ) T;
-`;
-
 const getAllProjectDetails = `
   SELECT
     U.username AS ownerUsername,
@@ -221,6 +194,11 @@ export const updateProjectDetails = (details: ProjectDetails): string => `
   WHERE project_id = ?;
 `;
 
+export const addToFieldsCatalog = (fields: string[]): string => `
+  INSERT IGNORE INTO field(name)
+  VALUES ${repeatStatement('(?)', fields)};
+`;
+
 // [projectId, field1, field2, ...]
 export const deleteOldProjectFields = (fields: string[]): string => `
   DELETE PF
@@ -246,6 +224,11 @@ export const insertNewProjectFields = (fields: string[]): string => `
       AND F2.name = F1.name
     )
   ) T;
+`;
+
+export const addToSkillsCatalog = (skills: string[]): string => `
+  INSERT IGNORE INTO skill(name)
+  VALUES ${repeatStatement('(?)', skills)};
 `;
 
 // [projectId, skill1, skill2, ...]
