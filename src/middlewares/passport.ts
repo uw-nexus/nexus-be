@@ -27,7 +27,7 @@ const local = (srv: UserService): LocalStrategy => {
         return done('Incorrect username or password');
       }
     } catch (error) {
-      done('User not found');
+      done('Failed to login');
     }
   });
 };
