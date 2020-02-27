@@ -14,6 +14,7 @@ Define your environment variables in a `.env` file, in KEY=VALUE format.
 | --- | ------- | ----------- |
 | FE_ADDR | http://localhost:3000 | Frontend service address |
 | PORT | 3100 | Port exposed to serve backend |
+| DB_SOCKET | _null_ | Socket path for unix domain (GCP) |
 | DB_HOST | localhost | MySQL hostname |
 | DB_PORT | 3306 | MySQL port |
 | DB_USER | root | MySQL username |
@@ -39,4 +40,11 @@ npm run lint
 ```sh
 npm run build
 npm start
+```
+
+## Deployment with Google App Engine
+Create your app.yaml for GAE, then run
+```sh
+npm run build
+gcloud app deploy
 ```

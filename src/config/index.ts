@@ -12,11 +12,12 @@ export const FE_ADDR = process.env.FE_ADDR || 'http://localhost:3000';
 export const PORT = parseInt(process.env.PORT) || 3100;
 
 export const DB = {
+  SOCKET: process.env.DB_SOCKET || null,
   HOST: process.env.DB_HOST || 'localhost',
   PORT: parseInt(process.env.DB_PORT) || 3306,
   USER: process.env.DB_USER || 'root',
-  PASS: process.env.DB_PASS || '',
-  NAME: process.env.DB_NAME || '',
+  PASS: process.env.DB_PASS || null,
+  NAME: process.env.DB_NAME || null,
 };
 
 export const JWT_SECRET = process.env.JWT_SECRET || 'jwt-secret';

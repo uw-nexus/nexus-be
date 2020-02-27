@@ -4,6 +4,7 @@ import { DB } from '../config';
 const pool = mysql.createPool({
   host: DB.HOST,
   port: DB.PORT,
+  socketPath: DB.SOCKET ? `/cloudsql/${DB.SOCKET}` : null,
   user: DB.USER,
   password: DB.PASS,
   database: DB.NAME,
