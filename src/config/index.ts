@@ -7,7 +7,9 @@ if (error) {
   throw new Error('⚠️  .env file not found  ⚠️');
 }
 
+export const DOMAIN = process.env.DOMAIN || 'localhost';
 export const FE_ADDR = process.env.FE_ADDR || 'http://localhost:3000';
+export const BE_ADDR = process.env.BE_ADDR || 'http://localhost:3100';
 
 export const PORT = parseInt(process.env.PORT) || 3100;
 

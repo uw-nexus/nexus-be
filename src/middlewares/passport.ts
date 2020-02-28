@@ -10,6 +10,7 @@ import {
   VerifyFunctionWithRequest as FacebookVerifyWR,
 } from 'passport-facebook';
 
+import { BE_ADDR } from '../config';
 import UserService from '../services/user';
 import { Pool } from 'mysql2/promise';
 import { Request } from 'express';
@@ -54,7 +55,7 @@ const fb = (userSrv: UserService, profileSrv: StudentService, userType: string):
   const fbOpts: FacebookOptionsWR = {
     clientID: FACEBOOK_APP_ID,
     clientSecret: FACEBOOK_APP_SECRET,
-    callbackURL: `/auth/${userType.toLowerCase()}/facebook/callback`,
+    callbackURL: `${BE_ADDR}/auth/${userType.toLowerCase()}/facebook/callback`,
     profileFields: ['id', 'name', 'picture', 'email'],
     passReqToCallback: true,
   };

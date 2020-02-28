@@ -12,7 +12,9 @@ Define your environment variables in a `.env` file, in KEY=VALUE format.
 
 | ENV | Default | Description |
 | --- | ------- | ----------- |
+| DOMAIN | localhost | Domain serving both FE and BE |
 | FE_ADDR | http://localhost:3000 | Frontend service address |
+| BE_ADDR | http://localhost:3100 | Backend service address |
 | PORT | 3100 | Port exposed to serve backend |
 | DB_SOCKET | _null_ | Socket path for unix domain (GCP) |
 | DB_HOST | localhost | MySQL hostname |
