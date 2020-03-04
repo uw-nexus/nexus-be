@@ -13,7 +13,7 @@ export const insertStudentContract = (contract: Contract): string => `
     ),
     ${contract.startDate ? '?,' : ''}
     ${contract.endDate ? '?,' : ''}
-    '(SELECT status_id FROM status WHERE name = "Pending")',
+    (SELECT status_id FROM status WHERE name = "Pending"),
     CURDATE(), CURDATE()
   );
 `;
