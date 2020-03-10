@@ -92,6 +92,23 @@ export const getProjectCities = `
   WHERE P.project_id = ?;
 `;
 
+// [projectId]
+export const getProjectContracts = `
+  SELECT
+    CTR.contract_id AS id,
+    CTR.start_date AS startDate,
+    CTR.end_date AS endDate,
+    STA.name AS status,
+    STU.first_name AS firstName,
+    STU.last_name AS lastName,
+    USR.username AS username
+  FROM contract CTR
+  JOIN status STA ON STA.status_id = CTR.status_id
+  JOIN student STU ON STU.student_id = CTR.student_id
+  JOIN user USR ON USR.user_id = STU.user_id
+  WHERE project_id = ?;
+`;
+
 // [f1, f2, .., s1, s2, .., l1, l2, .., offset, count, title, start, end, status]
 // lN = 'city, state, country'
 // example: [100,20] -> rows 101-120

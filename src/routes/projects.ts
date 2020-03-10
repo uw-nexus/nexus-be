@@ -30,6 +30,20 @@ const getProjectById = (srv: ProjectService) => async (req: Request, res: Respon
   }
 };
 
+const getProjectContracts = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
+  const { projectId } = req.params;
+  const { username } = req.user as User;
+
+  try {
+    const contracts = await srv.getProjectContracts(username, projectId);
+    res.json(contracts);
+  } catch (error) {
+    res.json({
+      error: (error as Error).message,
+    });
+  }
+};
+
 const updateProject = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
   const { projectId } = req.params;
   const project = req.body.project as Project;
@@ -83,6 +97,7 @@ export default (db: Pool): Router => {
 
   router.post('/', createProject(projectService));
   router.get('/:projectId', getProjectById(projectService));
+  router.get('/:projectId/contracts', getProjectContracts(projectService));
   router.patch('/:projectId', updateProject(projectService));
   router.delete('/:projectId', deleteProject(projectService));
   router.post('/search', searchProjects(projectService));

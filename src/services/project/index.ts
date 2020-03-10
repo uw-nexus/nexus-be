@@ -1,5 +1,5 @@
 import { Pool, RowDataPacket } from 'mysql2/promise';
-import { Project, ProjectDetails, Location } from '../../types';
+import { Project, ProjectDetails, Location, Contract } from '../../types';
 import * as SQL from './sql';
 
 export default class ProjectService {
@@ -83,6 +83,32 @@ export default class ProjectService {
       };
 
       return project;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async getProjectContracts(username: string, projectId: string): Promise<Contract[]> {
+    await this.validateOwner(projectId, username);
+
+    try {
+      const [contractsRes] = await this.db.execute(SQL.getProjectContracts, [projectId]);
+
+      const contracts: Contract[] = (contractsRes as RowDataPacket[]).map(c => ({
+        id: c.id,
+        startDate: c.startDate,
+        endDate: c.endDate,
+        status: c.status,
+        student: {
+          firstName: c.firstName,
+          lastName: c.lastName,
+          user: {
+            username: c.username,
+          },
+        },
+      }));
+
+      return contracts;
     } catch (err) {
       throw err;
     }
