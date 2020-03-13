@@ -1,5 +1,5 @@
 import { Pool, RowDataPacket } from 'mysql2/promise';
-import { Project, ProjectDetails, Location } from '../../types';
+import { Project, ProjectDetails, Location, Contract } from '../../types';
 import * as SQL from './sql';
 
 export default class ProjectService {
@@ -16,26 +16,19 @@ export default class ProjectService {
     }
   }
 
-  async createProject(username: string, project: Project): Promise<string> {
-    const { details, fields, skills, locations } = project;
+  async createProject(username: string, details: ProjectDetails): Promise<string> {
+    const { title, description, startDate, endDate } = details;
     const conn = await this.db.getConnection();
 
     try {
       conn.beginTransaction();
-      const projectParams = [username, details.title, details.description, details.startDate, details.endDate];
+      const projectParams = [username, title, description, startDate, endDate];
       const [projectRes] = await conn.execute(SQL.insertProject(details), projectParams);
-
       const projectId = projectRes['insertId'];
-      const fieldsParams = fields.reduce((acc, cur) => acc.concat(projectId, cur), []);
-      const skillsParams = skills.reduce((acc, cur) => acc.concat(projectId, cur), []);
-      await conn.execute(SQL.insertProjectFields(fields), fieldsParams);
-      await conn.execute(SQL.insertProjectSkills(skills), skillsParams);
-
-      const locParams = locations.map(l => [l.city, l.state, l.country].join(', '));
-      await conn.execute(SQL.insertProjectCities(locParams), [projectId, ...locParams]);
 
       await conn.commit();
       conn.release();
+
       return projectId;
     } catch (err) {
       await conn.rollback();
@@ -95,6 +88,32 @@ export default class ProjectService {
     }
   }
 
+  async getProjectContracts(username: string, projectId: string): Promise<Contract[]> {
+    await this.validateOwner(projectId, username);
+
+    try {
+      const [contractsRes] = await this.db.execute(SQL.getProjectContracts, [projectId]);
+
+      const contracts: Contract[] = (contractsRes as RowDataPacket[]).map(c => ({
+        id: c.id,
+        startDate: c.startDate,
+        endDate: c.endDate,
+        status: c.status,
+        student: {
+          firstName: c.firstName,
+          lastName: c.lastName,
+          user: {
+            username: c.username,
+          },
+        },
+      }));
+
+      return contracts;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async updateProject(username: string, projectId: string, project: Project): Promise<void> {
     await this.validateOwner(projectId, username);
     const { details, fields, skills, locations } = project;
@@ -103,23 +122,34 @@ export default class ProjectService {
     try {
       conn.beginTransaction();
 
-      const projectParams = [
-        details.title,
-        details.description,
-        details.startDate,
-        details.endDate,
-        details.status,
-      ].filter(Boolean);
+      if (details) {
+        const projectParams = [
+          details.title,
+          details.description,
+          details.startDate,
+          details.endDate,
+          details.status,
+        ].filter(Boolean);
+        await conn.execute(SQL.updateProjectDetails(details), [...projectParams, projectId]);
+      }
 
-      await conn.execute(SQL.updateProjectDetails(details), [...projectParams, projectId]);
-      await conn.execute(SQL.deleteOldProjectFields(fields), [projectId, ...fields]);
-      await conn.execute(SQL.insertNewProjectFields(fields), [projectId, ...fields, projectId]);
-      await conn.execute(SQL.deleteOldProjectSkills(skills), [projectId, ...skills]);
-      await conn.execute(SQL.insertNewProjectSkills(skills), [projectId, ...skills, projectId]);
+      if (fields) {
+        await conn.execute(SQL.addToFieldsCatalog(fields), fields);
+        await conn.execute(SQL.deleteOldProjectFields(fields), [projectId, ...fields]);
+        await conn.execute(SQL.insertNewProjectFields(fields), [projectId, ...fields, projectId]);
+      }
 
-      const locParams = locations.map(l => [l.city, l.state, l.country].join(', '));
-      await conn.execute(SQL.deleteOldProjectCities(locParams), [projectId, ...locParams]);
-      await conn.execute(SQL.insertNewProjectCities(locParams), [projectId, ...locParams, projectId]);
+      if (skills) {
+        await conn.execute(SQL.addToSkillsCatalog(skills), skills);
+        await conn.execute(SQL.deleteOldProjectSkills(skills), [projectId, ...skills]);
+        await conn.execute(SQL.insertNewProjectSkills(skills), [projectId, ...skills, projectId]);
+      }
+
+      if (locations) {
+        const locParams = locations.map(l => [l.city, l.state, l.country].join(', '));
+        await conn.execute(SQL.deleteOldProjectCities(locParams), [projectId, ...locParams]);
+        await conn.execute(SQL.insertNewProjectCities(locParams), [projectId, ...locParams, projectId]);
+      }
 
       await conn.commit();
       conn.release();

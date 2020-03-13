@@ -1,14 +1,14 @@
 import { Router, Request, Response } from 'express';
 import { Pool } from 'mysql2/promise';
 import ProjectService from '../services/project';
-import { User, Project } from '../types';
+import { User, Project, ProjectDetails } from '../types';
 
 const createProject = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
-  const project = req.body.project as Project;
+  const details = req.body as ProjectDetails;
   const { username } = req.user as User;
 
   try {
-    const projectId = await srv.createProject(username, project);
+    const projectId = await srv.createProject(username, details);
     res.json({ projectId });
   } catch (error) {
     res.json({
@@ -23,6 +23,20 @@ const getProjectById = (srv: ProjectService) => async (req: Request, res: Respon
   try {
     const project = await srv.getProject(projectId);
     res.json(project);
+  } catch (error) {
+    res.json({
+      error: (error as Error).message,
+    });
+  }
+};
+
+const getProjectContracts = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
+  const { projectId } = req.params;
+  const { username } = req.user as User;
+
+  try {
+    const contracts = await srv.getProjectContracts(username, projectId);
+    res.json(contracts);
   } catch (error) {
     res.json({
       error: (error as Error).message,
@@ -83,6 +97,7 @@ export default (db: Pool): Router => {
 
   router.post('/', createProject(projectService));
   router.get('/:projectId', getProjectById(projectService));
+  router.get('/:projectId/contracts', getProjectContracts(projectService));
   router.patch('/:projectId', updateProject(projectService));
   router.delete('/:projectId', deleteProject(projectService));
   router.post('/search', searchProjects(projectService));
