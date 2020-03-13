@@ -21,7 +21,8 @@ const register = (srv: UserService) => async (req: Request, res: Response, next:
 const generateToken = async (req: Request, res: Response): Promise<void> => {
   const { username, userType, provider } = req.user as User;
   const token = jwt.sign({ username, userType }, JWT_SECRET, { expiresIn: '7d' });
-  res.cookie('jwt', token, { httpOnly: true, secure: true, sameSite: 'None', domain: DOMAIN });
+  const prodSettings = { httpOnly: true, secure: true, sameSite: 'None', domain: DOMAIN };
+  res.cookie('jwt', token, process.env.NODE_ENV === 'production' ? prodSettings : {});
 
   if (provider) {
     res.redirect(FE_ADDR);
