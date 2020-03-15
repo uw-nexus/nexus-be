@@ -15,7 +15,7 @@ export const getOwnerUsername = `
   WHERE P.project_id = ?;
 `;
 
-// [ownerEmail, title, description, startDate, endDate]
+// [username, title, description, startDate, endDate]
 export const insertProject = (details: ProjectDetails): string => `
   INSERT INTO project
   VALUES (
@@ -30,6 +30,20 @@ export const insertProject = (details: ProjectDetails): string => `
     (SELECT status_id FROM status WHERE name = 'Active'), 
     CURDATE(), CURDATE()
   );
+`;
+
+// [username]
+export const getProjectsOwned = `
+  SELECT
+    P.project_id AS projectId,
+    P.title AS title,
+    P.start_date AS startDate,
+    P.end_date AS endDate,
+    S.name AS status
+  FROM project P
+  JOIN status S ON S.status_id = P.status_id
+  JOIN user U ON U.user_id = P.owner_id
+  WHERE U.username = ?;
 `;
 
 const getAllProjectDetails = `

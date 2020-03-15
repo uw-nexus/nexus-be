@@ -17,6 +17,19 @@ const createProject = (srv: ProjectService) => async (req: Request, res: Respons
   }
 };
 
+const getProjectsOwned = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
+  const { username } = req.user as User;
+
+  try {
+    const projects = await srv.getProjectsOwned(username);
+    res.json(projects);
+  } catch (error) {
+    res.json({
+      error: (error as Error).message,
+    });
+  }
+};
+
 const getProjectById = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
   const { projectId } = req.params;
 
@@ -96,6 +109,7 @@ export default (db: Pool): Router => {
   const projectService = new ProjectService(db);
 
   router.post('/', createProject(projectService));
+  router.get('/owned', getProjectsOwned(projectService));
   router.get('/:projectId', getProjectById(projectService));
   router.get('/:projectId/contracts', getProjectContracts(projectService));
   router.patch('/:projectId', updateProject(projectService));
