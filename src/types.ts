@@ -1,5 +1,5 @@
 export type User = {
-  id?: string;
+  userId?: string;
   username: string;
   password?: string;
   userType?: string;
@@ -12,7 +12,7 @@ export type Student = {
 };
 
 export type StudentProfile = {
-  id?: string;
+  studentId?: string;
   user?: User;
   firstName?: string;
   lastName?: string;
@@ -34,7 +34,7 @@ export type Project = {
 };
 
 export type ProjectDetails = {
-  id?: string;
+  projectId?: string;
   owner?: StudentProfile;
   title?: string;
   description?: string;
@@ -52,7 +52,7 @@ export type Location = {
 };
 
 export type Contract = {
-  id?: string;
+  contractId?: string;
   project?: ProjectDetails;
   student?: StudentProfile;
   startDate?: Date;

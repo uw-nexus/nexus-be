@@ -104,7 +104,7 @@ export default class ProjectService {
       const [contractsRes] = await this.db.execute(SQL.getProjectContracts, [projectId]);
 
       const contracts: Contract[] = (contractsRes as RowDataPacket[]).map(c => ({
-        id: c.id,
+        contractId: c.contractId,
         startDate: c.startDate,
         endDate: c.endDate,
         status: c.status,

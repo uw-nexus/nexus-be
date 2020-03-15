@@ -4,7 +4,7 @@ import ContractService from '../services/contract';
 import { User, Contract } from '../types';
 
 const createStudentContract = (srv: ContractService) => async (req: Request, res: Response): Promise<void> => {
-  const contract = req.body.contract as Contract;
+  const contract = req.body as Contract;
 
   try {
     const contractId = await srv.createStudentContract(contract);
@@ -31,7 +31,7 @@ const getStudentContracts = (srv: ContractService) => async (req: Request, res: 
 
 const updateStudentContract = (srv: ContractService) => async (req: Request, res: Response): Promise<void> => {
   const { contractId } = req.params;
-  const contract = req.body.contract as Contract;
+  const contract = req.body as Contract;
 
   try {
     await srv.updateStudentContract(contractId, contract);

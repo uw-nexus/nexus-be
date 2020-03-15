@@ -10,7 +10,7 @@ const register = (srv: UserService) => async (req: Request, res: Response, next:
   const user = req.body as User;
 
   try {
-    user.id = await srv.createUser(user);
+    user.userId = await srv.createUser(user);
     req.user = user;
     next();
   } catch (error) {

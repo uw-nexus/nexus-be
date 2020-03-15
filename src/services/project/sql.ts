@@ -109,7 +109,7 @@ export const getProjectCities = `
 // [projectId]
 export const getProjectContracts = `
   SELECT
-    CTR.contract_id AS id,
+    CTR.contract_id AS contractId,
     CTR.start_date AS startDate,
     CTR.end_date AS endDate,
     STA.name AS status,

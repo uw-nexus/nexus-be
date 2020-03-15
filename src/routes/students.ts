@@ -31,7 +31,7 @@ const getStudent = (srv: StudentService) => async (req: Request, res: Response):
 };
 
 const updateStudent = (srv: StudentService) => async (req: Request, res: Response): Promise<void> => {
-  const student = req.body.student as Student;
+  const student = req.body as Student;
   const { username } = req.user as User;
 
   try {
