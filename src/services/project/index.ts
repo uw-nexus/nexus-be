@@ -66,6 +66,15 @@ export default class ProjectService {
     }
   }
 
+  async getProjectsOwned(username: string): Promise<ProjectDetails[]> {
+    try {
+      const [res] = await this.db.execute(SQL.getProjectsOwned, [username]);
+      return res as ProjectDetails[];
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async getProject(projectId: string): Promise<Project> {
     try {
       const projectDetails = await this.getProjectDetails(projectId);
