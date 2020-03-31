@@ -208,13 +208,15 @@ export default class ProjectService {
     const [res] = await this.db.execute(SQL.searchProjects(filters), finalParams);
     const projects: ProjectDetails[] = (res as RowDataPacket[]).map(row => {
       return {
-        id: row.projectId,
+        projectId: row.projectId,
         owner: {
           user: { username: row.ownerUsername },
           firstName: row.ownerFirstName,
           lastName: row.ownerLastName,
         },
         title: row.title,
+        startDate: row.startDate,
+        endDate: row.endDate,
         status: row.status,
         createdAt: row.createdAt,
       };
