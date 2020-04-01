@@ -30,6 +30,11 @@ export default class ContractService {
           project: {
             projectId: row.projectId,
             title: row.projectTitle,
+            owner: {
+              user: { username: row.ownerUsername },
+              firstName: row.ownerFirstName,
+              lastName: row.ownerLastName,
+            },
           },
           startDate: row.contractStartDate,
           endDate: row.contractEndDate,
