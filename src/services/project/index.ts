@@ -22,7 +22,7 @@ export default class ProjectService {
 
     try {
       conn.beginTransaction();
-      const projectParams = [username, title, description, startDate, endDate];
+      const projectParams = [username, title, description, startDate, endDate].filter(Boolean);
       const [projectRes] = await conn.execute(SQL.insertProject(details), projectParams);
       const projectId = projectRes['insertId'];
 
