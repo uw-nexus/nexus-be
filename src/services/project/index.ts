@@ -142,19 +142,19 @@ export default class ProjectService {
         await conn.execute(SQL.updateProjectDetails(details), [...projectParams, projectId]);
       }
 
-      if (fields) {
+      if (fields && fields.length) {
         await conn.execute(SQL.addToFieldsCatalog(fields), fields);
         await conn.execute(SQL.deleteOldProjectFields(fields), [projectId, ...fields]);
         await conn.execute(SQL.insertNewProjectFields(fields), [projectId, ...fields, projectId]);
       }
 
-      if (skills) {
+      if (skills && skills.length) {
         await conn.execute(SQL.addToSkillsCatalog(skills), skills);
         await conn.execute(SQL.deleteOldProjectSkills(skills), [projectId, ...skills]);
         await conn.execute(SQL.insertNewProjectSkills(skills), [projectId, ...skills, projectId]);
       }
 
-      if (locations) {
+      if (locations && locations.length) {
         const locParams = locations.map(l => [l.city, l.state, l.country].join(', '));
         await conn.execute(SQL.deleteOldProjectCities(locParams), [projectId, ...locParams]);
         await conn.execute(SQL.insertNewProjectCities(locParams), [projectId, ...locParams, projectId]);
