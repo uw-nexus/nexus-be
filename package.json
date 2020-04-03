@@ -8,7 +8,9 @@
     "dev": "nodemon",
     "start": "node build/app.js",
     "lint": "eslint './**/*.ts'",
-    "lint:fix": "eslint './**/*.ts' --fix"
+    "lint:fix": "eslint './**/*.ts' --fix",
+    "gcp-build": "npm run build",
+    "deploy": "gcloud app deploy"
   },
   "keywords": [],
   "author": "",

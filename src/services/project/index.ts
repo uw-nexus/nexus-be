@@ -22,7 +22,7 @@ export default class ProjectService {
 
     try {
       conn.beginTransaction();
-      const projectParams = [username, title, description, startDate, endDate];
+      const projectParams = [username, title, description, startDate, endDate].filter(Boolean);
       const [projectRes] = await conn.execute(SQL.insertProject(details), projectParams);
       const projectId = projectRes['insertId'];
 
@@ -104,7 +104,7 @@ export default class ProjectService {
       const [contractsRes] = await this.db.execute(SQL.getProjectContracts, [projectId]);
 
       const contracts: Contract[] = (contractsRes as RowDataPacket[]).map(c => ({
-        id: c.id,
+        contractId: c.contractId,
         startDate: c.startDate,
         endDate: c.endDate,
         status: c.status,
@@ -142,19 +142,19 @@ export default class ProjectService {
         await conn.execute(SQL.updateProjectDetails(details), [...projectParams, projectId]);
       }
 
-      if (fields) {
+      if (fields && fields.length) {
         await conn.execute(SQL.addToFieldsCatalog(fields), fields);
         await conn.execute(SQL.deleteOldProjectFields(fields), [projectId, ...fields]);
         await conn.execute(SQL.insertNewProjectFields(fields), [projectId, ...fields, projectId]);
       }
 
-      if (skills) {
+      if (skills && skills.length) {
         await conn.execute(SQL.addToSkillsCatalog(skills), skills);
         await conn.execute(SQL.deleteOldProjectSkills(skills), [projectId, ...skills]);
         await conn.execute(SQL.insertNewProjectSkills(skills), [projectId, ...skills, projectId]);
       }
 
-      if (locations) {
+      if (locations && locations.length) {
         const locParams = locations.map(l => [l.city, l.state, l.country].join(', '));
         await conn.execute(SQL.deleteOldProjectCities(locParams), [projectId, ...locParams]);
         await conn.execute(SQL.insertNewProjectCities(locParams), [projectId, ...locParams, projectId]);
@@ -208,13 +208,15 @@ export default class ProjectService {
     const [res] = await this.db.execute(SQL.searchProjects(filters), finalParams);
     const projects: ProjectDetails[] = (res as RowDataPacket[]).map(row => {
       return {
-        id: row.projectId,
+        projectId: row.projectId,
         owner: {
           user: { username: row.ownerUsername },
           firstName: row.ownerFirstName,
           lastName: row.ownerLastName,
         },
         title: row.title,
+        startDate: row.startDate,
+        endDate: row.endDate,
         status: row.status,
         createdAt: row.createdAt,
       };

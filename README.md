@@ -47,6 +47,5 @@ npm start
 ## Deployment with Google App Engine
 Create your app.yaml for GAE, then run
 ```sh
-npm run build
-gcloud app deploy
+npm run deploy
 ```

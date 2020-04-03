@@ -13,7 +13,7 @@ export default class ContractService {
     const { project, student, startDate, endDate } = contract;
 
     try {
-      const params = [project.id, student.user.username, startDate, endDate].filter(Boolean);
+      const params = [project.projectId, student.user.username, startDate, endDate].filter(Boolean);
       const [res] = await this.db.execute(SQL.insertStudentContract(contract), params);
       return res['insertId'];
     } catch (err) {
@@ -26,10 +26,15 @@ export default class ContractService {
       const [res] = await this.db.execute(SQL.getStudentContracts, [studentUsername]);
       const contracts: Contract[] = (res as RowDataPacket[]).map(row => {
         const c: Contract = {
-          id: row.contractId,
+          contractId: row.contractId,
           project: {
-            id: row.projectId,
+            projectId: row.projectId,
             title: row.projectTitle,
+            owner: {
+              user: { username: row.ownerUsername },
+              firstName: row.ownerFirstName,
+              lastName: row.ownerLastName,
+            },
           },
           startDate: row.contractStartDate,
           endDate: row.contractEndDate,

@@ -59,7 +59,7 @@ const getProjectContracts = (srv: ProjectService) => async (req: Request, res: R
 
 const updateProject = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
   const { projectId } = req.params;
-  const project = req.body.project as Project;
+  const project = req.body as Project;
   const { username } = req.user as User;
 
   try {
@@ -87,8 +87,10 @@ const deleteProject = (srv: ProjectService) => async (req: Request, res: Respons
 };
 
 const searchProjects = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
-  const { filters, offset, count } = req.body;
+  let { filters } = req.body;
+  const { offset, count } = req.body;
 
+  if (!filters) filters = {};
   filters.details = filters.details || {};
   filters.fields = filters.fields || [];
   filters.skills = filters.skills || [];

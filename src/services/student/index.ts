@@ -51,7 +51,7 @@ export default class StudentService {
         firstName: res[0].firstName,
         lastName: res[0].lastName,
         email: res[0].email,
-        dob: new Date(res[0].dob),
+        dob: res[0].dob ? new Date(res[0].dob) : null,
         school: res[0].school || '',
         standing: res[0].standing || '',
         major1: res[0].major1 || '',

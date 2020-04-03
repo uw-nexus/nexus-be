@@ -24,9 +24,10 @@ export const insertProject = (details: ProjectDetails): string => `
       FROM user U
       JOIN student S ON S.user_id = U.user_id
       WHERE username = ?), 
-    ?, ?,
-    ${details.startDate ? '?,' : ''}
-    ${details.endDate ? '?,' : ''}
+    ?,
+    ${details.description ? '?' : `''`},
+    ${details.startDate ? '?' : 'CURDATE()'},
+    ${details.endDate ? '?' : 'DATE_ADD(CURDATE(), INTERVAL 1 MONTH)'},
     (SELECT status_id FROM status WHERE name = 'Active'), 
     CURDATE(), CURDATE()
   );
@@ -109,7 +110,7 @@ export const getProjectCities = `
 // [projectId]
 export const getProjectContracts = `
   SELECT
-    CTR.contract_id AS id,
+    CTR.contract_id AS contractId,
     CTR.start_date AS startDate,
     CTR.end_date AS endDate,
     STA.name AS status,
