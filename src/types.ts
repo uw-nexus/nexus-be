@@ -28,7 +28,7 @@ export type StudentProfile = {
 
 export type Project = {
   details: ProjectDetails;
-  fields: string[];
+  interests: string[];
   skills: string[];
   locations: Location[];
 };

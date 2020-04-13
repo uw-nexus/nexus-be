@@ -80,13 +80,13 @@ export default class ProjectService {
       const projectDetails = await this.getProjectDetails(projectId);
       if (!projectDetails) return null;
 
-      const [fieldsRes] = await this.db.execute(SQL.getProjectFields, [projectId]);
+      const [interestsRes] = await this.db.execute(SQL.getProjectInterests, [projectId]);
       const [skillsRes] = await this.db.execute(SQL.getProjectSkills, [projectId]);
       const [citiesRes] = await this.db.execute(SQL.getProjectCities, [projectId]);
 
       const project = {
         details: projectDetails,
-        fields: (fieldsRes as RowDataPacket[]).map(row => row.field),
+        interests: (interestsRes as RowDataPacket[]).map(row => row.interest),
         skills: (skillsRes as RowDataPacket[]).map(row => row.skill),
         locations: citiesRes as Location[],
       };
@@ -125,7 +125,7 @@ export default class ProjectService {
 
   async updateProject(username: string, projectId: string, project: Project): Promise<void> {
     await this.validateOwner(projectId, username);
-    const { details, fields, skills, locations } = project;
+    const { details, interests, skills, locations } = project;
     const conn = await this.db.getConnection();
 
     try {
@@ -142,10 +142,10 @@ export default class ProjectService {
         await conn.execute(SQL.updateProjectDetails(details), [...projectParams, projectId]);
       }
 
-      if (fields && fields.length) {
-        await conn.execute(SQL.addToFieldsCatalog(fields), fields);
-        await conn.execute(SQL.deleteOldProjectFields(fields), [projectId, ...fields]);
-        await conn.execute(SQL.insertNewProjectFields(fields), [projectId, ...fields, projectId]);
+      if (interests && interests.length) {
+        await conn.execute(SQL.addToInterestsCatalog(interests), interests);
+        await conn.execute(SQL.deleteOldProjectInterests(interests), [projectId, ...interests]);
+        await conn.execute(SQL.insertNewProjectInterests(interests), [projectId, ...interests, projectId]);
       }
 
       if (skills && skills.length) {
@@ -175,7 +175,7 @@ export default class ProjectService {
 
     try {
       conn.beginTransaction();
-      await conn.execute(SQL.deleteProjectFields, [projectId]);
+      await conn.execute(SQL.deleteProjectInterests, [projectId]);
       await conn.execute(SQL.deleteProjectSkills, [projectId]);
       await conn.execute(SQL.deleteProjectCities, [projectId]);
       await conn.execute(SQL.deleteProject, [projectId]);
@@ -190,10 +190,10 @@ export default class ProjectService {
 
   async searchProjects(filters: Project, offset = 0, count = 10): Promise<ProjectDetails[]> {
     const { title, startDate, endDate, status } = filters.details;
-    const { fields, skills, locations } = filters;
+    const { interests, skills, locations } = filters;
 
     const locParams = locations.map(l => [l.city, l.state, l.country].join(', '));
-    const m2mParams = [...fields, ...skills, ...locParams];
+    const m2mParams = [...interests, ...skills, ...locParams];
     const detailsParams = [title ? `%${title}%` : '', startDate, endDate, status];
     let finalParams = [];
 

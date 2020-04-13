@@ -79,11 +79,11 @@ const getAllProjectDetails = `
 export const getProjectDetailsById = `${getAllProjectDetails} WHERE P.project_id = ?;`;
 
 // [projectId]
-export const getProjectFields = `
-  SELECT F.name AS field
+export const getProjectInterests = `
+  SELECT F.name AS interest
   FROM project P
-  JOIN project_field PF ON PF.project_id = P.project_id
-  JOIN field F ON F.field_id = PF.field_id
+  JOIN project_interest PF ON PF.project_id = P.project_id
+  JOIN interest F ON F.interest_id = PF.interest_id
   WHERE P.project_id = ?;
 `;
 
@@ -129,12 +129,12 @@ export const getProjectContracts = `
 // example: [100,20] -> rows 101-120
 export const searchProjects = (filters: Project): string => {
   const { title, startDate, endDate, status } = filters.details;
-  const { fields, skills, locations } = filters;
+  const { interests, skills, locations } = filters;
   const locs = locations.map(l => [l.city, l.state, l.country].join(', '));
 
-  const inner = fields.length ? 'FIELDS' : skills.length ? 'SKILLS' : 'LOCS';
+  const inner = interests.length ? 'FIELDS' : skills.length ? 'SKILLS' : 'LOCS';
   const countSQL = [
-    fields.length ? 'FIELDS.count' : '',
+    interests.length ? 'FIELDS.count' : '',
     skills.length ? 'SKILLS.count' : '',
     locs.length ? 'LOCS.count' : '',
   ]
@@ -146,12 +146,12 @@ export const searchProjects = (filters: Project): string => {
       SELECT ${inner}.project_id, ${countSQL} AS score
       FROM
       ${
-        fields.length
+        interests.length
           ? `(
                 SELECT project_id, COUNT(*) AS count
-                FROM project_field PF
-                JOIN field F ON F.field_id = PF.field_id
-                WHERE F.name IN(${repeatStatement('?', fields)})
+                FROM project_interest PF
+                JOIN interest F ON F.interest_id = PF.interest_id
+                WHERE F.name IN(${repeatStatement('?', interests)})
                 GROUP BY project_id
               ) FIELDS 
               ${skills.length || locations.length ? 'JOIN' : ''}`
@@ -166,7 +166,7 @@ export const searchProjects = (filters: Project): string => {
                 WHERE S.name IN(${repeatStatement('?', skills)})
                 GROUP BY project_id
               ) SKILLS 
-              ${fields.length ? 'ON SKILLS.project_id = FIELDS.project_id' : ''}
+              ${interests.length ? 'ON SKILLS.project_id = FIELDS.project_id' : ''}
               ${locations.length ? 'JOIN' : ''}`
           : ''
       }
@@ -182,7 +182,7 @@ export const searchProjects = (filters: Project): string => {
                 GROUP BY project_id
               ) LOCS 
               ${
-                fields.length || skills.length
+                interests.length || skills.length
                   ? `ON LOCS.project_id = ${skills.length ? 'SKILLS' : 'FIELDS'}.project_id`
                   : ''
               }`
@@ -204,9 +204,9 @@ export const searchProjects = (filters: Project): string => {
 
   return `
     ${getAllProjectDetails}
-    ${fields.length || skills.length || locs.length ? featuresSQL : ''}
+    ${interests.length || skills.length || locs.length ? featuresSQL : ''}
     ${detailsSQL ? 'WHERE ' + detailsSQL : ''}
-    ${fields.length || skills.length || locs.length ? '' : 'LIMIT ?, ?'};
+    ${interests.length || skills.length || locs.length ? '' : 'LIMIT ?, ?'};
   `;
 };
 
@@ -226,32 +226,32 @@ export const updateProjectDetails = (details: ProjectDetails): string => `
   WHERE project_id = ?;
 `;
 
-export const addToFieldsCatalog = (fields: string[]): string => `
-  INSERT IGNORE INTO field(name)
-  VALUES ${repeatStatement('(?)', fields)};
+export const addToInterestsCatalog = (interests: string[]): string => `
+  INSERT IGNORE INTO interest(name)
+  VALUES ${repeatStatement('(?)', interests)};
 `;
 
-// [projectId, field1, field2, ...]
-export const deleteOldProjectFields = (fields: string[]): string => `
+// [projectId, interest1, interest2, ...]
+export const deleteOldProjectInterests = (interests: string[]): string => `
   DELETE PF
-  FROM project_field PF
-  JOIN field F ON F.field_id = PF.field_id
+  FROM project_interest PF
+  JOIN interest F ON F.interest_id = PF.interest_id
   WHERE PF.project_id = ?
-  AND F.name NOT IN(${repeatStatement('?', fields)});
+  AND F.name NOT IN(${repeatStatement('?', interests)});
 `;
 
-// [projectId, field1, ..., fieldN, projectId]
-export const insertNewProjectFields = (fields: string[]): string => `
-  INSERT INTO project_field
-  SELECT null, project_id, field_id
+// [projectId, interest1, ..., interestN, projectId]
+export const insertNewProjectInterests = (interests: string[]): string => `
+  INSERT INTO project_interest
+  SELECT null, project_id, interest_id
   FROM (
-    SELECT ? AS project_id, F1.field_id
-    FROM field F1
-    WHERE F1.name IN(${repeatStatement('?', fields)})
+    SELECT ? AS project_id, F1.interest_id
+    FROM interest F1
+    WHERE F1.name IN(${repeatStatement('?', interests)})
     AND NOT EXISTS (
       SELECT *
-      FROM project_field PF
-      JOIN field F2 ON F2.field_id = PF.field_id
+      FROM project_interest PF
+      JOIN interest F2 ON F2.interest_id = PF.interest_id
       WHERE project_id = ?
       AND F2.name = F1.name
     )
@@ -329,7 +329,7 @@ export const insertNewProjectCities = (locations: string[]): string => `
 `;
 
 // [projectId]
-export const deleteProjectFields = `DELETE FROM project_field WHERE project_id = ?;`;
+export const deleteProjectInterests = `DELETE FROM project_interest WHERE project_id = ?;`;
 export const deleteProjectSkills = `DELETE FROM project_skill WHERE project_id = ?;`;
 export const deleteProjectCities = `DELETE FROM project_city WHERE project_id = ?;`;
 export const deleteProject = `DELETE FROM project WHERE project_id = ?;`;

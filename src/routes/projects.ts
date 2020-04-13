@@ -92,7 +92,7 @@ const searchProjects = (srv: ProjectService) => async (req: Request, res: Respon
 
   if (!filters) filters = {};
   filters.details = filters.details || {};
-  filters.fields = filters.fields || [];
+  filters.interests = filters.interests || [];
   filters.skills = filters.skills || [];
   filters.locations = filters.locations || [];
 
