@@ -32,6 +32,15 @@ export default class UserService {
     }
   }
 
+  async resetUserPassword(username: string, password: string): Promise<void> {
+    try {
+      const passwordHash = await bcrypt.hash(password, 10);
+      await this.db.execute(SQL.resetUserPassword, [passwordHash, username]);
+    } catch (err) {
+      throw new Error(`error changing user password: ${err}`);
+    }
+  }
+
   generateRandomPassword(): string {
     const randomize = (): string =>
       Math.random()

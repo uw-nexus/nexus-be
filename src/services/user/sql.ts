@@ -11,3 +11,6 @@ export const findUser = `
   JOIN user_type T ON T.user_type_id = U.user_type_id
   WHERE username = ?;
 `;
+
+// [password, username]
+export const resetUserPassword = `UPDATE user SET password = ? WHERE username = ?;`;

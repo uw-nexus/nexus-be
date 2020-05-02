@@ -1,7 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
+
 import UserService from '../services/user';
+import * as mailer from '../services/mailer';
 import { JWT_SECRET, FE_ADDR, DOMAIN } from '../config';
 import { Pool } from 'mysql2/promise';
 import { User } from '../types';
@@ -15,6 +17,36 @@ const register = (srv: UserService) => async (req: Request, res: Response, next:
     next();
   } catch (error) {
     next(error);
+  }
+};
+
+const requestPasswordReset = (srv: UserService) => async (req: Request, res: Response): Promise<void> => {
+  const { email } = req.query;
+
+  try {
+    await srv.findUser(email);
+    const jwtToken = jwt.sign({ username: email }, JWT_SECRET, { expiresIn: '12h' });
+    await mailer.sendPasswordResetIntru(email, jwtToken);
+    res.send('Email sent');
+  } catch (error) {
+    res.json({
+      error: (error as Error).message,
+    });
+  }
+};
+
+const resetPassword = (srv: UserService) => async (req: Request, res: Response): Promise<void> => {
+  const { username } = req.user as User;
+  const { password } = req.body;
+  console.log(username, password);
+
+  try {
+    await srv.resetUserPassword(username, password);
+    res.send('Password reset successful');
+  } catch (error) {
+    res.json({
+      error: (error as Error).message,
+    });
   }
 };
 
@@ -48,6 +80,9 @@ export default (db: Pool): Router => {
 
   router.get('/student/facebook', passport.authenticate('facebook-student', authOpts));
   router.get('/student/facebook/callback', passport.authenticate('facebook-student', authOpts), generateToken);
+
+  router.get('/password-reset', requestPasswordReset(userService));
+  router.patch('/password-reset', passport.authenticate('jwt', { session: false }), resetPassword(userService));
 
   return router;
 };
