@@ -26,3 +26,6 @@ export const JWT_SECRET = process.env.JWT_SECRET || 'jwt-secret';
 
 export const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID || '';
 export const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET || '';
+
+export const EMAIL_ADDR = process.env.EMAIL_ADDR || '';
+export const EMAIL_NAME = process.env.EMAIL_NAME || '';

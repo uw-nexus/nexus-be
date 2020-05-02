@@ -37,7 +37,7 @@ const jwt = (srv: UserService): JwtStrategy => {
   const getJwtCookie = (req: Request): string => (req.cookies ? req.cookies.jwt : null);
 
   const jwtOpts = {
-    jwtFromRequest: ExtractJwt.fromExtractors([getJwtCookie]),
+    jwtFromRequest: ExtractJwt.fromExtractors([getJwtCookie, ExtractJwt.fromAuthHeaderAsBearerToken()]),
     secretOrKey: JWT_SECRET,
   };
 
