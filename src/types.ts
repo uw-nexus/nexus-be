@@ -9,6 +9,8 @@ export type User = {
 export type Student = {
   profile: StudentProfile;
   skills: string[];
+  roles: string[];
+  interests: string[];
 };
 
 export type StudentProfile = {
@@ -19,11 +21,15 @@ export type StudentProfile = {
   email?: string;
   dob?: Date;
   school?: string;
+  degree?: string;
   standing?: string;
   major1?: string;
   major2?: string;
   photoUrl?: string;
-  location?: Location;
+  resume?: string;
+  linkedin?: string;
+  website?: string;
+  postal?: string;
 };
 
 export type Project = {

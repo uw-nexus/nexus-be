@@ -33,22 +33,20 @@ export const getStudentProfile = `
     STU.email AS email,
     STU.dob AS dob,
     SCH.name AS school,
-    STA.name AS standing,
+    D.name AS degree,
     M1.name AS major1,
     M2.name AS major2,
-    STU.photo_url AS photoUrl,
-    CI.name AS city,
-    ST.name AS state,
-    CO.name AS country
+    STU.resume AS resume,
+    STU.linkedin AS linkedin,
+    STU.website AS website,
+    STU.postal AS postal,
+    STU.photo_url AS photoUrl
   FROM student STU
   JOIN user USR ON USR.user_id = STU.user_id
   LEFT JOIN school SCH ON SCH.school_id = STU.school_id
-  LEFT JOIN standing STA ON STA.standing_id = STU.standing_id
+  LEFT JOIN degree D ON D.degree_id = STU.degree_id
   LEFT JOIN major M1 ON M1.major_id = STU.major1_id
   LEFT JOIN major M2 ON M2.major_id = STU.major2_id
-  LEFT JOIN city CI ON CI.city_id = STU.city_id
-  LEFT JOIN state ST ON ST.state_id = CI.state_id
-  LEFT JOIN country CO ON CO.country_id = CI.country_id
   WHERE STU.student_id = ?;
 `;
 
@@ -61,64 +59,78 @@ export const getStudentSkills = `
   WHERE STU.student_id = ?;
 `;
 
-// [dob, school, standing, major1, major2, city, state, country, studentId]
+// [studentId]
+export const getStudentRoles = `
+  SELECT R.name AS role
+  FROM student STU
+  JOIN student_role SR ON SR.student_id = STU.student_id
+  JOIN role R ON R.role_id = SR.role_id
+  WHERE STU.student_id = ?;
+`;
+
+// [studentId]
+export const getStudentInterests = `
+  SELECT I.name AS interest
+  FROM student STU
+  JOIN student_interest SI ON SI.student_id = STU.student_id
+  JOIN interest I ON I.interest_id = SI.interest_id
+  WHERE STU.student_id = ?;
+`;
+
+// [dob, school, degree, major1, major2, resume, linkedin, website, postal, studentId]
 export const updateStudentProfile = (profile: StudentProfile): string => `
   UPDATE student
   SET ${[
     profile.dob ? `dob = ?` : '',
     profile.school ? `school_id = (SELECT school_id FROM school WHERE name = ?)` : '',
-    profile.standing ? `standing_id = (SELECT standing_id FROM standing WHERE name = ?)` : '',
+    profile.degree ? `degree_id = (SELECT degree_id FROM degree WHERE name = ?)` : '',
     profile.major1 ? `major1_id = (SELECT major_id FROM major WHERE name = ?)` : '',
     profile.major2 ? `major2_id = (SELECT major_id FROM major WHERE name = ?)` : '',
-    profile.location
-      ? `city_id = (
-          SELECT CI.city_id
-          FROM city CI
-          LEFT JOIN state ST ON ST.state_id = CI.state_id
-          JOIN country CO ON CO.country_id = CI.country_id
-          WHERE CI.name = ?
-          ${profile.location.state ? 'AND (ST.name IS NULL OR ST.name = ?)' : ''}
-          AND CO.name = ?
-        )`
-      : '',
+    profile.resume ? `resume = ?` : '',
+    profile.linkedin ? `linkedin = ?` : '',
+    profile.website ? `website = ?` : '',
+    profile.postal ? `postal = ?` : '',
+    profile.photoUrl ? `photoUrl = ?` : '',
   ]
     .filter(Boolean)
     .join(', ')}
   WHERE student_id = ?;
 `;
 
-export const addToSkillsCatalog = (skills: string[]): string => `
-  INSERT IGNORE INTO skill(name)
+export const addToArrayCatalog = (table: string, skills: string[]): string => `
+  INSERT IGNORE INTO ${table}(name)
   VALUES ${repeatStatement('(?)', skills)};
 `;
 
-// [studentId, skill1, skill2, ...]
-export const deleteOldStudentSkills = (skills: string[]): string => `
-  DELETE SS
-  FROM student_skill SS
-  JOIN skill SK ON SK.skill_id = SS.skill_id
-  WHERE SS.student_id = ?
-  AND SK.name NOT IN(${repeatStatement('?', skills)});
+// [studentId, item1, item2, ...]
+export const deleteOldStudentArrayItems = (table: string, items: string[]): string => `
+  DELETE ST
+  FROM student_${table} ST
+  JOIN ${table} T ON T.${table}_id = ST.${table}_id
+  WHERE ST.student_id = ?
+  AND T.name NOT IN(${repeatStatement('?', items)});
 `;
 
-// [studentId, skill1, ..., skillN, studentId]
-export const insertNewStudentSkills = (skills: string[]): string => `
-  INSERT INTO student_skill
-  SELECT null, student_id, skill_id
+// [studentId, item1, ..., itemN, studentId]
+export const insertNewStudentArrayItem = (table: string, items: string[]): string => `
+  INSERT INTO student_${table}
+  SELECT null, student_id, ${table}_id
   FROM (
-    SELECT ? AS student_id, SK1.skill_id
-    FROM skill SK1
-    WHERE SK1.name IN(${repeatStatement('?', skills)})
+    SELECT ? AS student_id, T1.${table}_id
+    FROM ${table} T1
+    WHERE T1.name IN(${repeatStatement('?', items)})
     AND NOT EXISTS (
       SELECT *
-      FROM student_skill SS
-      JOIN skill SK2 ON SK2.skill_id = SS.skill_id
+      FROM student_${table} ST
+      JOIN ${table} T2 ON T2.${table}_id = ST.${table}_id
       WHERE student_id = ?
-      AND SK2.name = SK1.name
+      AND T2.name = T1.name
     )
   ) T;
 `;
 
 // [studentId]
 export const deleteStudentSkills = `DELETE FROM student_skill WHERE student_id = ?;`;
+export const deleteStudentRoles = `DELETE FROM student_role WHERE student_id = ?;`;
+export const deleteStudentInterests = `DELETE FROM student_interest WHERE student_id = ?;`;
 export const deleteStudent = `DELETE FROM student WHERE student_id = ?;`;

@@ -53,15 +53,14 @@ export default class StudentService {
         email: res[0].email,
         dob: res[0].dob ? new Date(res[0].dob) : null,
         school: res[0].school || '',
-        standing: res[0].standing || '',
+        degree: res[0].degree || '',
         major1: res[0].major1 || '',
         major2: res[0].major2 || '',
-        photoUrl: res[0].photoUrl,
-        location: {
-          city: res[0].city,
-          state: res[0].state,
-          country: res[0].country,
-        },
+        resume: res[0].resume || '',
+        linkedin: res[0].linkedin || '',
+        website: res[0].website || '',
+        postal: res[0].postal || '',
+        photoUrl: res[0].photoUrl || '',
       };
     }
 
@@ -74,41 +73,57 @@ export default class StudentService {
     if (!studentProfile) return null;
 
     const [skillsRes] = await this.db.execute(SQL.getStudentSkills, [studentId]);
+    const [rolesRes] = await this.db.execute(SQL.getStudentRoles, [studentId]);
+    const [interestsRes] = await this.db.execute(SQL.getStudentInterests, [studentId]);
 
     const student = {
       profile: studentProfile,
       skills: (skillsRes as RowDataPacket[]).map(row => row.skill),
+      roles: (rolesRes as RowDataPacket[]).map(row => row.role),
+      interests: (interestsRes as RowDataPacket[]).map(row => row.interest),
     };
 
     return student;
   }
 
   async updateStudent(username: string, student: Student): Promise<void> {
-    const { profile, skills } = student;
+    const { profile, skills, roles, interests } = student;
     const conn = await this.db.getConnection();
 
     try {
       conn.beginTransaction();
       const studentId = await this.getStudentId(username);
 
-      if (profile) {
-        const profileParams = [
-          profile.dob,
-          profile.school,
-          profile.standing,
-          profile.major1,
-          profile.major2,
-          profile.location ? profile.location.city : '',
-          profile.location ? profile.location.state : '',
-          profile.location ? profile.location.country : '',
-        ].filter(Boolean);
-        await conn.execute(SQL.updateStudentProfile(profile), [...profileParams, studentId]);
+      const profileParams = [
+        profile.dob,
+        profile.school,
+        profile.degree,
+        profile.major1,
+        profile.major2,
+        profile.resume,
+        profile.linkedin,
+        profile.website,
+        profile.postal,
+        profile.photoUrl,
+      ].filter(Boolean);
+      await conn.execute(SQL.updateStudentProfile(profile), [...profileParams, studentId]);
+
+      if (skills.length) {
+        await conn.execute(SQL.addToArrayCatalog('skill', skills), skills);
+        await conn.execute(SQL.deleteOldStudentArrayItems('skill', skills), [studentId, ...skills]);
+        await conn.execute(SQL.insertNewStudentArrayItem('skill', skills), [studentId, ...skills, studentId]);
       }
 
-      if (skills) {
-        await conn.execute(SQL.addToSkillsCatalog(skills), skills);
-        await conn.execute(SQL.deleteOldStudentSkills(skills), [studentId, ...skills]);
-        await conn.execute(SQL.insertNewStudentSkills(skills), [studentId, ...skills, studentId]);
+      if (roles.length) {
+        await conn.execute(SQL.addToArrayCatalog('role', roles), roles);
+        await conn.execute(SQL.deleteOldStudentArrayItems('role', roles), [studentId, ...roles]);
+        await conn.execute(SQL.insertNewStudentArrayItem('role', roles), [studentId, ...roles, studentId]);
+      }
+
+      if (interests.length) {
+        await conn.execute(SQL.addToArrayCatalog('interest', interests), interests);
+        await conn.execute(SQL.deleteOldStudentArrayItems('interest', interests), [studentId, ...interests]);
+        await conn.execute(SQL.insertNewStudentArrayItem('interest', interests), [studentId, ...interests, studentId]);
       }
 
       await conn.commit();
@@ -127,6 +142,8 @@ export default class StudentService {
       conn.beginTransaction();
       const studentId = await this.getStudentId(username);
       await conn.execute(SQL.deleteStudentSkills, [studentId]);
+      await conn.execute(SQL.deleteStudentRoles, [studentId]);
+      await conn.execute(SQL.deleteStudentInterests, [studentId]);
       await conn.execute(SQL.deleteStudent, [studentId]);
       await conn.commit();
       conn.release();
