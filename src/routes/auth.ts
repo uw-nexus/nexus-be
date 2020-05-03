@@ -38,7 +38,6 @@ const requestPasswordReset = (srv: UserService) => async (req: Request, res: Res
 const resetPassword = (srv: UserService) => async (req: Request, res: Response): Promise<void> => {
   const { username } = req.user as User;
   const { password } = req.body;
-  console.log(username, password);
 
   try {
     await srv.resetUserPassword(username, password);
