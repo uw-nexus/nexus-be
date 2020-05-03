@@ -76,7 +76,7 @@ const fb = (userSrv: UserService, profileSrv: StudentService, userType: string):
       };
     }
 
-    if (!user.id) {
+    if (!user.userId) {
       try {
         user.id = await userSrv.createUser(user);
         await profileSrv.createStudent(user.username, {
