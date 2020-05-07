@@ -97,9 +97,9 @@ export const updateStudentProfile = (profile: StudentProfile): string => `
   WHERE student_id = ?;
 `;
 
-export const addToArrayCatalog = (table: string, skills: string[]): string => `
+export const addToArrayCatalog = (table: string, items: string[]): string => `
   INSERT IGNORE INTO ${table}(name)
-  VALUES ${repeatStatement('(?)', skills)};
+  VALUES ${repeatStatement('(?)', items)};
 `;
 
 // [studentId, item1, item2, ...]
@@ -111,21 +111,14 @@ export const deleteOldStudentArrayItems = (table: string, items: string[]): stri
   AND T.name NOT IN(${repeatStatement('?', items)});
 `;
 
-// [studentId, item1, ..., itemN, studentId]
-export const insertNewStudentArrayItem = (table: string, items: string[]): string => `
-  INSERT INTO student_${table}
-  SELECT null, student_id, ${table}_id
+// [studentId, item1, ..., itemN]
+export const insertNewStudentArrayItems = (table: string, items: string[]): string => `
+  INSERT IGNORE INTO student_${table}
+  SELECT student_id, ${table}_id
   FROM (
-    SELECT ? AS student_id, T1.${table}_id
-    FROM ${table} T1
-    WHERE T1.name IN(${repeatStatement('?', items)})
-    AND NOT EXISTS (
-      SELECT *
-      FROM student_${table} ST
-      JOIN ${table} T2 ON T2.${table}_id = ST.${table}_id
-      WHERE student_id = ?
-      AND T2.name = T1.name
-    )
+    SELECT ? AS student_id, ${table}_id
+    FROM ${table}
+    WHERE name IN(${repeatStatement('?', items)})
   ) T;
 `;
 

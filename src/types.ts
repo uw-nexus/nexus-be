@@ -34,27 +34,22 @@ export type StudentProfile = {
 
 export type Project = {
   details: ProjectDetails;
-  interests: string[];
   skills: string[];
-  locations: Location[];
+  roles: string[];
+  interests: string[];
 };
 
 export type ProjectDetails = {
   projectId?: string;
   owner?: StudentProfile;
-  title?: string;
+  title: string;
   description?: string;
-  startDate?: Date;
-  endDate?: Date;
-  status?: string;
+  status: string;
+  duration: string;
+  size: string;
+  postal: string;
   createdAt?: Date;
   updatedAt?: Date;
-};
-
-export type Location = {
-  city: string;
-  state?: string;
-  country: string;
 };
 
 export type Contract = {

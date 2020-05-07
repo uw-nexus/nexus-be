@@ -1,5 +1,5 @@
 import { Pool, RowDataPacket } from 'mysql2/promise';
-import { Project, ProjectDetails, Location, Contract } from '../../types';
+import { Project, ProjectDetails, Contract } from '../../types';
 import * as SQL from './sql';
 
 export default class ProjectService {
@@ -17,13 +17,13 @@ export default class ProjectService {
   }
 
   async createProject(username: string, details: ProjectDetails): Promise<string> {
-    const { title, description, startDate, endDate } = details;
+    const { title, description, size, duration, postal } = details;
     const conn = await this.db.getConnection();
 
     try {
       conn.beginTransaction();
-      const projectParams = [username, title, description, startDate, endDate].filter(Boolean);
-      const [projectRes] = await conn.execute(SQL.insertProject(details), projectParams);
+      const projectParams = [username, title, description, size, duration, postal];
+      const [projectRes] = await conn.execute(SQL.insertProject(), projectParams);
       const projectId = projectRes['insertId'];
 
       await conn.commit();
@@ -52,9 +52,10 @@ export default class ProjectService {
           },
           title: res[0].title,
           description: res[0].description,
-          startDate: res[0].startDate,
-          endDate: res[0].endDate,
           status: res[0].status,
+          duration: res[0].duration,
+          size: res[0].size,
+          postal: res[0].postal,
           createdAt: res[0].createdAt,
           updatedAt: res[0].updatedAt,
         };
@@ -80,15 +81,15 @@ export default class ProjectService {
       const projectDetails = await this.getProjectDetails(projectId);
       if (!projectDetails) return null;
 
-      const [interestsRes] = await this.db.execute(SQL.getProjectInterests, [projectId]);
       const [skillsRes] = await this.db.execute(SQL.getProjectSkills, [projectId]);
-      const [citiesRes] = await this.db.execute(SQL.getProjectCities, [projectId]);
+      const [rolesRes] = await this.db.execute(SQL.getProjectRoles, [projectId]);
+      const [interestsRes] = await this.db.execute(SQL.getProjectInterests, [projectId]);
 
       const project = {
         details: projectDetails,
-        interests: (interestsRes as RowDataPacket[]).map(row => row.interest),
         skills: (skillsRes as RowDataPacket[]).map(row => row.skill),
-        locations: citiesRes as Location[],
+        roles: (rolesRes as RowDataPacket[]).map(row => row.role),
+        interests: (interestsRes as RowDataPacket[]).map(row => row.interest),
       };
 
       return project;
@@ -125,7 +126,7 @@ export default class ProjectService {
 
   async updateProject(username: string, projectId: string, project: Project): Promise<void> {
     await this.validateOwner(projectId, username);
-    const { details, interests, skills, locations } = project;
+    const { details, skills, roles, interests } = project;
     const conn = await this.db.getConnection();
 
     try {
@@ -135,29 +136,36 @@ export default class ProjectService {
         const projectParams = [
           details.title,
           details.description,
-          details.startDate,
-          details.endDate,
+          details.size,
+          details.duration,
           details.status,
+          details.postal,
         ].filter(Boolean);
         await conn.execute(SQL.updateProjectDetails(details), [...projectParams, projectId]);
       }
 
-      if (interests && interests.length) {
-        await conn.execute(SQL.addToInterestsCatalog(interests), interests);
-        await conn.execute(SQL.deleteOldProjectInterests(interests), [projectId, ...interests]);
-        await conn.execute(SQL.insertNewProjectInterests(interests), [projectId, ...interests, projectId]);
-      }
-
       if (skills && skills.length) {
-        await conn.execute(SQL.addToSkillsCatalog(skills), skills);
-        await conn.execute(SQL.deleteOldProjectSkills(skills), [projectId, ...skills]);
-        await conn.execute(SQL.insertNewProjectSkills(skills), [projectId, ...skills, projectId]);
+        await conn.execute(SQL.addToArrayCatalog('skill', skills), skills);
+        await conn.execute(SQL.deleteOldProjectArrayItems('skill', skills), [projectId, ...skills]);
+        await conn.execute(SQL.insertNewProjectArrayItems('skill', skills), [projectId, ...skills]);
+      } else {
+        await conn.execute(SQL.deleteProjectSkills, [projectId]);
       }
 
-      if (locations && locations.length) {
-        const locParams = locations.map(l => [l.city, l.state, l.country].join(', '));
-        await conn.execute(SQL.deleteOldProjectCities(locParams), [projectId, ...locParams]);
-        await conn.execute(SQL.insertNewProjectCities(locParams), [projectId, ...locParams, projectId]);
+      if (roles && roles.length) {
+        await conn.execute(SQL.addToArrayCatalog('role', roles), roles);
+        await conn.execute(SQL.deleteOldProjectArrayItems('role', roles), [projectId, ...roles]);
+        await conn.execute(SQL.insertNewProjectArrayItems('role', roles), [projectId, ...roles]);
+      } else {
+        await conn.execute(SQL.deleteProjectRoles, [projectId]);
+      }
+
+      if (interests && interests.length) {
+        await conn.execute(SQL.addToArrayCatalog('interest', interests), interests);
+        await conn.execute(SQL.deleteOldProjectArrayItems('interest', interests), [projectId, ...interests]);
+        await conn.execute(SQL.insertNewProjectArrayItems('interest', interests), [projectId, ...interests]);
+      } else {
+        await conn.execute(SQL.deleteProjectInterests, [projectId]);
       }
 
       await conn.commit();
@@ -175,9 +183,9 @@ export default class ProjectService {
 
     try {
       conn.beginTransaction();
-      await conn.execute(SQL.deleteProjectInterests, [projectId]);
       await conn.execute(SQL.deleteProjectSkills, [projectId]);
-      await conn.execute(SQL.deleteProjectCities, [projectId]);
+      await conn.execute(SQL.deleteProjectRoles, [projectId]);
+      await conn.execute(SQL.deleteProjectInterests, [projectId]);
       await conn.execute(SQL.deleteProject, [projectId]);
       await conn.commit();
       conn.release();
@@ -188,37 +196,29 @@ export default class ProjectService {
     }
   }
 
-  async searchProjects(filters: Project, offset = 0, count = 10): Promise<ProjectDetails[]> {
-    const { title, startDate, endDate, status } = filters.details;
-    const { interests, skills, locations } = filters;
+  async searchProjects(filters: Project, lastScore: number = null, lastId: number = null): Promise<Project[]> {
+    const { title, size, duration, status } = filters.details;
+    const { interests, skills, roles } = filters;
 
-    const locParams = locations.map(l => [l.city, l.state, l.country].join(', '));
-    const m2mParams = [...interests, ...skills, ...locParams];
-    const detailsParams = [title ? `%${title}%` : '', startDate, endDate, status];
-    let finalParams = [];
+    const m2mParams = [...interests, ...skills, ...roles];
+    const detailsParams = [title ? `%${title}%` : '', size, duration, status];
+    const finalParams = [...m2mParams, ...detailsParams, lastScore, lastScore, lastId].filter(Boolean);
 
-    if (m2mParams.length) {
-      finalParams = [...m2mParams, offset, count, ...detailsParams];
-    } else {
-      finalParams = [...detailsParams, offset, count];
-    }
-
-    finalParams = finalParams.filter(p => p || p === 0);
-
-    const [res] = await this.db.execute(SQL.searchProjects(filters), finalParams);
-    const projects: ProjectDetails[] = (res as RowDataPacket[]).map(row => {
+    const [res] = await this.db.execute(SQL.searchProjects(filters, lastScore, lastId), finalParams);
+    const projects: Project[] = (res as RowDataPacket[]).map(row => {
       return {
-        projectId: row.projectId,
-        owner: {
-          user: { username: row.ownerUsername },
-          firstName: row.ownerFirstName,
-          lastName: row.ownerLastName,
+        details: {
+          projectId: row.projectId,
+          title: row.title,
+          status: row.status,
+          duration: row.duration,
+          size: row.size,
+          postal: row.postal,
         },
-        title: row.title,
-        startDate: row.startDate,
-        endDate: row.endDate,
-        status: row.status,
-        createdAt: row.createdAt,
+        skills: row.skills ? row.skills.split(',') : [],
+        roles: row.roles ? row.roles.split(',') : [],
+        interests: row.interests ? row.interests.split(',') : [],
+        score: row.score,
       };
     });
 

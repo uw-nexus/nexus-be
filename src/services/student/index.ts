@@ -111,19 +111,25 @@ export default class StudentService {
       if (skills.length) {
         await conn.execute(SQL.addToArrayCatalog('skill', skills), skills);
         await conn.execute(SQL.deleteOldStudentArrayItems('skill', skills), [studentId, ...skills]);
-        await conn.execute(SQL.insertNewStudentArrayItem('skill', skills), [studentId, ...skills, studentId]);
+        await conn.execute(SQL.insertNewStudentArrayItems('skill', skills), [studentId, ...skills]);
+      } else {
+        await conn.execute(SQL.deleteStudentSkills, [studentId]);
       }
 
       if (roles.length) {
         await conn.execute(SQL.addToArrayCatalog('role', roles), roles);
         await conn.execute(SQL.deleteOldStudentArrayItems('role', roles), [studentId, ...roles]);
-        await conn.execute(SQL.insertNewStudentArrayItem('role', roles), [studentId, ...roles, studentId]);
+        await conn.execute(SQL.insertNewStudentArrayItems('role', roles), [studentId, ...roles]);
+      } else {
+        await conn.execute(SQL.deleteStudentRoles, [studentId]);
       }
 
       if (interests.length) {
         await conn.execute(SQL.addToArrayCatalog('interest', interests), interests);
         await conn.execute(SQL.deleteOldStudentArrayItems('interest', interests), [studentId, ...interests]);
-        await conn.execute(SQL.insertNewStudentArrayItem('interest', interests), [studentId, ...interests, studentId]);
+        await conn.execute(SQL.insertNewStudentArrayItems('interest', interests), [studentId, ...interests]);
+      } else {
+        await conn.execute(SQL.deleteStudentInterests, [studentId]);
       }
 
       await conn.commit();

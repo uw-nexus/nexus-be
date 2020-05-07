@@ -15,8 +15,8 @@ export const getOwnerUsername = `
   WHERE P.project_id = ?;
 `;
 
-// [username, title, description, startDate, endDate]
-export const insertProject = (details: ProjectDetails): string => `
+// [username, title, description, size, duration, postal]
+export const insertProject = (): string => `
   INSERT INTO project
   VALUES (
     null,
@@ -24,48 +24,52 @@ export const insertProject = (details: ProjectDetails): string => `
       FROM user U
       JOIN student S ON S.user_id = U.user_id
       WHERE username = ?), 
-    ?,
-    ${details.description ? '?' : `''`},
-    ${details.startDate ? '?' : 'CURDATE()'},
-    ${details.endDate ? '?' : 'DATE_ADD(CURDATE(), INTERVAL 1 MONTH)'},
-    (SELECT status_id FROM status WHERE name = 'Active'), 
-    CURDATE(), CURDATE()
+    ?, ?, 
+    (SELECT size_id FROM team_size WHERE name = ?),
+    (SELECT duration_id FROM duration WHERE name = ?),
+    (SELECT status_id FROM status WHERE name = 'Active'),    
+    ?, CURDATE(), CURDATE()
   );
 `;
 
 // [username]
 export const getProjectsOwned = `
   SELECT
-    P.project_id AS projectId,
-    P.title AS title,
-    P.start_date AS startDate,
-    P.end_date AS endDate,
-    S.name AS status
+    P.project_id as projectId,
+    P.title as title,
+    ST.name as status,
+    D.name as duration,
+    SZ.name as size,
+    P.postal as postal
   FROM project P
-  JOIN status S ON S.status_id = P.status_id
-  JOIN user U ON U.user_id = P.owner_id
-  WHERE U.username = ?;
+  JOIN status ST ON ST.status_id = P.status_id
+  JOIN duration D ON D.duration_id = P.duration_id
+  JOIN team_size SZ ON SZ.size_id = P.size_id
+  JOIN user U ON U.user_id = P.owner_id WHERE U.username = ?;
 `;
 
-const getAllProjectDetails = `
+// [projectId]
+export const getProjectDetailsById = `
   SELECT
     U.username AS ownerUsername,
     SNC.user_id AS ownerUserId,
     SNC.first_name AS ownerFirstName,
     SNC.last_name AS ownerLastName,
-    SNC.email AS ownerEmail,
     NPO.npo_id AS npoId,
     NPO.name AS npoName,
     P.project_id AS projectId,
     P.title AS title,
     P.description AS description,
-    P.start_date AS startDate,
-    P.end_date AS endDate,
-    S.name AS status,
+    ST.name AS status,
+    D.name as duration,
+    SZ.name as size,
+    P.postal as postal,
     P.created_at AS createdAt,
     P.updated_at AS updatedAt
   FROM project P
-  JOIN status S ON S.status_id = P.status_id
+  JOIN status ST ON ST.status_id = P.status_id
+  JOIN duration D ON D.duration_id = P.duration_id
+  JOIN team_size SZ ON SZ.size_id = P.size_id
   JOIN user U ON U.user_id = P.owner_id
   JOIN (
     (SELECT user_id, null AS npo_id, first_name, last_name, email FROM student)
@@ -73,17 +77,6 @@ const getAllProjectDetails = `
     (SELECT user_id, npo_id, first_name, last_name, email FROM client)
   ) SNC ON SNC.user_id = U.user_id
   LEFT JOIN npo NPO ON NPO.npo_id = SNC.npo_id
-`;
-
-// [projectId]
-export const getProjectDetailsById = `${getAllProjectDetails} WHERE P.project_id = ?;`;
-
-// [projectId]
-export const getProjectInterests = `
-  SELECT F.name AS interest
-  FROM project P
-  JOIN project_interest PF ON PF.project_id = P.project_id
-  JOIN interest F ON F.interest_id = PF.interest_id
   WHERE P.project_id = ?;
 `;
 
@@ -97,13 +90,20 @@ export const getProjectSkills = `
 `;
 
 // [projectId]
-export const getProjectCities = `
-  SELECT CI.name AS city, ST.name AS state, CO.name AS country
+export const getProjectRoles = `
+  SELECT R.name AS role
   FROM project P
-  JOIN project_city PC ON PC.project_id = P.project_id
-  JOIN city CI ON CI.city_id = PC.city_id
-  LEFT JOIN state ST ON ST.state_id = CI.state_id
-  JOIN country CO ON CO.country_id = CI.country_id
+  JOIN project_role PI ON PI.project_id = P.project_id
+  JOIN role R ON R.role_id = PI.role_id
+  WHERE P.project_id = ?;
+`;
+
+// [projectId]
+export const getProjectInterests = `
+  SELECT I.name AS interest
+  FROM project P
+  JOIN project_interest PI ON PI.project_id = P.project_id
+  JOIN interest I ON I.interest_id = PI.interest_id
   WHERE P.project_id = ?;
 `;
 
@@ -124,212 +124,168 @@ export const getProjectContracts = `
   WHERE project_id = ?;
 `;
 
-// [f1, f2, .., s1, s2, .., l1, l2, .., offset, count, title, start, end, status]
-// lN = 'city, state, country'
-// example: [100,20] -> rows 101-120
-export const searchProjects = (filters: Project): string => {
-  const { title, startDate, endDate, status } = filters.details;
-  const { interests, skills, locations } = filters;
-  const locs = locations.map(l => [l.city, l.state, l.country].join(', '));
-
-  const inner = interests.length ? 'FIELDS' : skills.length ? 'SKILLS' : 'LOCS';
-  const countSQL = [
-    interests.length ? 'FIELDS.count' : '',
-    skills.length ? 'SKILLS.count' : '',
-    locs.length ? 'LOCS.count' : '',
-  ]
-    .filter(Boolean)
-    .join(' * ');
-
-  const featuresSQL = `
-    JOIN (
-      SELECT ${inner}.project_id, ${countSQL} AS score
-      FROM
-      ${
-        interests.length
-          ? `(
-                SELECT project_id, COUNT(*) AS count
-                FROM project_interest PF
-                JOIN interest F ON F.interest_id = PF.interest_id
-                WHERE F.name IN(${repeatStatement('?', interests)})
-                GROUP BY project_id
-              ) FIELDS 
-              ${skills.length || locations.length ? 'JOIN' : ''}`
-          : ''
-      }
-      ${
-        skills.length
-          ? `(
-                SELECT project_id, COUNT(*) AS count
-                FROM project_skill PS
-                JOIN skill S ON S.skill_id = PS.skill_id
-                WHERE S.name IN(${repeatStatement('?', skills)})
-                GROUP BY project_id
-              ) SKILLS 
-              ${interests.length ? 'ON SKILLS.project_id = FIELDS.project_id' : ''}
-              ${locations.length ? 'JOIN' : ''}`
-          : ''
-      }
-      ${
-        locs.length
-          ? `(
-                SELECT project_id, COUNT(*) AS count
-                FROM project_city PC
-                JOIN city CI ON CI.city_id = PC.city_id
-                LEFT JOIN state ST ON ST.state_id = CI.state_id
-                JOIN country CO ON CO.country_id = CI.country_id
-                WHERE CONCAT(CI.name, ', ', COALESCE(ST.name, ''), ', ', CO.name) IN(${repeatStatement('?', locs)})
-                GROUP BY project_id
-              ) LOCS 
-              ${
-                interests.length || skills.length
-                  ? `ON LOCS.project_id = ${skills.length ? 'SKILLS' : 'FIELDS'}.project_id`
-                  : ''
-              }`
-          : ''
-      }
-      ORDER BY score DESC
-      LIMIT ?, ?
-    ) T ON T.project_id = P.project_id
-  `;
-
-  const detailsSQL = [
-    title ? `P.title LIKE ?` : '',
-    startDate ? `P.start_date >= ?` : '',
-    endDate ? `P.end_date <= ?` : '',
-    status ? `S.name = ?` : '',
-  ]
-    .filter(Boolean)
-    .join(' AND ');
-
-  return `
-    ${getAllProjectDetails}
-    ${interests.length || skills.length || locs.length ? featuresSQL : ''}
-    ${detailsSQL ? 'WHERE ' + detailsSQL : ''}
-    ${interests.length || skills.length || locs.length ? '' : 'LIMIT ?, ?'};
-  `;
-};
-
-// [title, description, startDate, endDate, status, projectId]
+// [title, description, size, duration, status, postal, projectId]
 export const updateProjectDetails = (details: ProjectDetails): string => `
   UPDATE project
   SET
     ${[
       details.title ? 'title = ?' : '',
       details.description ? 'description = ?' : '',
-      details.startDate ? 'start_date = ?' : '',
-      details.endDate ? 'end_date = ?' : '',
+      details.size ? 'size_id = (SELECT size_id FROM team_size WHERE name = ?)' : '',
+      details.duration ? 'duration_id = (SELECT duration_id FROM duration WHERE name = ?)' : '',
       details.status ? 'status_id = (SELECT status_id FROM status WHERE name = ?)' : '',
+      details.postal ? 'postal = ?' : '',
+      'updated_at = CURDATE()',
     ]
       .filter(Boolean)
       .join(', ')}
   WHERE project_id = ?;
 `;
 
-export const addToInterestsCatalog = (interests: string[]): string => `
-  INSERT IGNORE INTO interest(name)
-  VALUES ${repeatStatement('(?)', interests)};
+export const addToArrayCatalog = (table: string, items: string[]): string => `
+  INSERT IGNORE INTO ${table}(name)
+  VALUES ${repeatStatement('(?)', items)};
 `;
 
-// [projectId, interest1, interest2, ...]
-export const deleteOldProjectInterests = (interests: string[]): string => `
-  DELETE PF
-  FROM project_interest PF
-  JOIN interest F ON F.interest_id = PF.interest_id
-  WHERE PF.project_id = ?
-  AND F.name NOT IN(${repeatStatement('?', interests)});
+// [projectId, item1, item2, ...]
+export const deleteOldProjectArrayItems = (table: string, items: string[]): string => `
+  DELETE PT
+  FROM project_${table} PT
+  JOIN ${table} T ON T.${table}_id = PT.${table}_id
+  WHERE PT.project_id = ?
+  AND T.name NOT IN(${repeatStatement('?', items)});
 `;
 
-// [projectId, interest1, ..., interestN, projectId]
-export const insertNewProjectInterests = (interests: string[]): string => `
-  INSERT INTO project_interest
-  SELECT null, project_id, interest_id
+// [projectId, item1, ..., itemN]
+export const insertNewProjectArrayItems = (table: string, items: string[]): string => `
+  INSERT IGNORE INTO project_${table}
+  SELECT project_id, ${table}_id
   FROM (
-    SELECT ? AS project_id, F1.interest_id
-    FROM interest F1
-    WHERE F1.name IN(${repeatStatement('?', interests)})
-    AND NOT EXISTS (
-      SELECT *
-      FROM project_interest PF
-      JOIN interest F2 ON F2.interest_id = PF.interest_id
-      WHERE project_id = ?
-      AND F2.name = F1.name
-    )
-  ) T;
-`;
-
-export const addToSkillsCatalog = (skills: string[]): string => `
-  INSERT IGNORE INTO skill(name)
-  VALUES ${repeatStatement('(?)', skills)};
-`;
-
-// [projectId, skill1, skill2, ...]
-export const deleteOldProjectSkills = (skills: string[]): string => `
-  DELETE PS
-  FROM project_skill PS
-  JOIN skill S ON S.skill_id = PS.skill_id
-  WHERE PS.project_id = ?
-  AND S.name NOT IN(${repeatStatement('?', skills)});
-`;
-
-// [projectId, skill1, ..., skillN, projectId]
-export const insertNewProjectSkills = (skills: string[]): string => `
-  INSERT INTO project_skill
-  SELECT null, project_id, skill_id
-  FROM (
-    SELECT ? AS project_id, S1.skill_id
-    FROM skill S1
-    WHERE S1.name IN(${repeatStatement('?', skills)})
-    AND NOT EXISTS (
-      SELECT *
-      FROM project_skill PS
-      JOIN skill S2 ON S2.skill_id = PS.skill_id
-      WHERE project_id = ?
-      AND S2.name = S1.name
-    )
-  ) T;
-`;
-
-// [projectId, loc1, loc2, ...]
-// locN = 'city, state, country'
-export const deleteOldProjectCities = (locations: string[]): string => `
-  DELETE PC
-  FROM project_city PC
-    JOIN city CI ON CI.city_id = PC.city_id
-    LEFT JOIN state ST ON ST.state_id = CI.state_id
-    JOIN country CO ON CO.country_id = CI.country_id
-  WHERE PC.project_id = ?
-  AND CONCAT(CI.name, ', ', COALESCE(ST.name, ''), ', ', CO.name) NOT IN(${repeatStatement('?', locations)});
-`;
-
-// [projectId, loc1, ..., locN, projectId]
-// locN = 'city, state, country'
-export const insertNewProjectCities = (locations: string[]): string => `
-  INSERT INTO project_city
-  SELECT null, project_id, city_id
-  FROM (
-    SELECT ? AS project_id, CI1.city_id
-    FROM city CI1
-      LEFT JOIN state ST1 ON ST1.state_id = CI1.state_id
-      JOIN country CO1 ON CO1.country_id = CI1.country_id
-    WHERE
-      CONCAT(CI1.name, ', ', COALESCE(ST1.name, ''), ', ', CO1.name) IN(${repeatStatement('?', locations)})
-    AND NOT EXISTS (
-      SELECT *
-      FROM project_city PC
-      JOIN city CI2 ON CI2.city_id = PC.city_id
-        LEFT JOIN state ST2 ON ST2.state_id = CI2.state_id
-        JOIN country CO2 ON CO2.country_id = CI2.country_id
-      WHERE project_id = ?
-      AND CI2.name = CI1.name
-      AND (ST1.name IS NULL OR ST2.name = ST1.name)
-      AND CO2.name = CO2.name
-    )
+    SELECT ? AS project_id, ${table}_id
+    FROM ${table}
+    WHERE name IN(${repeatStatement('?', items)})
   ) T;
 `;
 
 // [projectId]
 export const deleteProjectInterests = `DELETE FROM project_interest WHERE project_id = ?;`;
 export const deleteProjectSkills = `DELETE FROM project_skill WHERE project_id = ?;`;
-export const deleteProjectCities = `DELETE FROM project_city WHERE project_id = ?;`;
+export const deleteProjectRoles = `DELETE FROM project_role WHERE project_id = ?;`;
 export const deleteProject = `DELETE FROM project WHERE project_id = ?;`;
+
+// [i1, i2, .., s1, s2, .., r1, r2, .., title, size, duration, status, lastScore, lastScore, lastId]
+export const searchProjects = (filters: Project, lastScore: number = null, lastId: number = null): string => {
+  const { title, size, duration, status } = filters.details;
+  const { interests, skills, roles } = filters;
+
+  const m2mTable = interests.length ? 'INTERESTS' : skills.length ? 'SKILLS' : 'ROLES';
+  const m2mFiltered = Boolean(interests.length || skills.length || roles.length);
+
+  const scoreSQL = [
+    interests.length ? '(INTERESTS.count + 1)' : '',
+    skills.length ? '(SKILLS.count + 1)' : '',
+    roles.length ? '(ROLES.count + 1)' : '',
+  ]
+    .filter(Boolean)
+    .join(' * ');
+
+  const m2mJoins = `
+    ${
+      skills.length
+        ? `(
+              SELECT project_id, COUNT(*) AS count
+              FROM project_skill PS
+              JOIN skill S ON S.skill_id = PS.skill_id
+              WHERE S.name IN(${repeatStatement('?', skills)})
+              GROUP BY project_id
+            ) SKILLS 
+            ${interests.length ? 'ON SKILLS.project_id = INTERESTS.project_id' : ''}
+            ${roles.length ? 'JOIN' : ''}`
+        : ''
+    }
+    ${
+      roles.length
+        ? `(
+              SELECT project_id, COUNT(*) AS count
+              FROM project_role PR
+              JOIN role R ON R.role_id = PR.role_id
+              WHERE R.name IN(${repeatStatement('?', roles)})
+              GROUP BY project_id
+            ) ROLES 
+            ${
+              interests.length || skills.length
+                ? `ON ROLES.project_id = ${skills.length ? 'ROLES' : 'INTERESTS'}.project_id`
+                : ''
+            }`
+        : ''
+    }
+    ${
+      interests.length
+        ? `(
+              SELECT project_id, COUNT(*) AS count
+              FROM project_interest PI
+              JOIN interest F ON F.interest_id = PI.interest_id
+              WHERE F.name IN(${repeatStatement('?', interests)})
+              GROUP BY project_id
+            ) INTERESTS 
+            ${skills.length || roles.length ? 'JOIN' : ''}`
+        : ''
+    }
+    ${m2mFiltered ? `JOIN project P ON P.project_id = ${m2mTable}.project_id` : ''}
+  `;
+
+  const whereSQL = [
+    title ? `P.title LIKE ?` : '',
+    size ? `SZ.name = ?` : '',
+    duration ? `D.name = ?` : '',
+    status ? `ST.name = ?` : '',
+    m2mFiltered && lastScore && lastId
+      ? `score < ? OR (score = ? AND P.project_id > ?)`
+      : lastId
+      ? `P.project_id > ?`
+      : '',
+  ]
+    .filter(Boolean)
+    .join(' AND ');
+
+  return `
+    SELECT
+      T.projectId,
+      T.title,
+      T.status,
+      T.duration,
+      T.size,
+      T.postal,
+      group_concat(DISTINCT(S.name)) as skills,
+      group_concat(DISTINCT(R.name)) as roles,
+      group_concat(DISTINCT(I.name)) as interests,
+      T.score
+    FROM (
+      SELECT 
+        P.project_id as projectId,
+        P.title as title,
+        ST.name as status,
+        D.name as duration,
+        SZ.name as size,
+        P.postal as postal,
+        ${m2mFiltered ? scoreSQL : '0'} AS score
+      
+      FROM ${m2mFiltered ? '' : 'project P'}
+      ${m2mJoins}
+      JOIN status ST ON ST.status_id = P.status_id
+      JOIN duration D ON D.duration_id = P.duration_id
+      JOIN team_size SZ ON SZ.size_id = P.size_id
+
+      ${whereSQL ? 'WHERE ' + whereSQL : ''}
+      ORDER BY score DESC, P.project_id
+      LIMIT 20
+    ) T
+    LEFT JOIN project_skill PS ON PS.project_id = T.projectId
+    LEFT JOIN skill S ON S.skill_id = PS.skill_id
+    LEFT JOIN project_role PR ON PR.project_id = T.projectId
+    LEFT JOIN role R ON R.role_id = PR.role_id
+    LEFT JOIN project_interest PI ON PI.project_id = T.projectId
+    LEFT JOIN interest I ON I.interest_id = PI.interest_id
+    GROUP BY T.projectId
+  `;
+};

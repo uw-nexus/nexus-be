@@ -88,16 +88,16 @@ const deleteProject = (srv: ProjectService) => async (req: Request, res: Respons
 
 const searchProjects = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
   let { filters } = req.body;
-  const { offset, count } = req.body;
+  const { lastScore, lastId } = req.body;
 
   if (!filters) filters = {};
   filters.details = filters.details || {};
-  filters.interests = filters.interests || [];
   filters.skills = filters.skills || [];
-  filters.locations = filters.locations || [];
+  filters.roles = filters.roles || [];
+  filters.interests = filters.interests || [];
 
   try {
-    const projects = await srv.searchProjects(filters, offset, count);
+    const projects = await srv.searchProjects(filters, lastScore, lastId);
     res.json(projects);
   } catch (error) {
     res.json({
