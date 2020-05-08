@@ -195,33 +195,4 @@ export default class ProjectService {
       throw err;
     }
   }
-
-  async searchProjects(filters: Project, lastScore: number = null, lastId: number = null): Promise<Project[]> {
-    const { title, size, duration, status } = filters.details;
-    const { interests, skills, roles } = filters;
-
-    const m2mParams = [...interests, ...skills, ...roles];
-    const detailsParams = [title, size, duration, status];
-    const finalParams = [...m2mParams, ...detailsParams, lastScore, lastScore, lastId].filter(Boolean);
-
-    const [res] = await this.db.execute(SQL.searchProjects(filters, lastScore, lastId), finalParams);
-    const projects: Project[] = (res as RowDataPacket[]).map(row => {
-      return {
-        details: {
-          projectId: row.projectId,
-          title: row.title,
-          status: row.status,
-          duration: row.duration,
-          size: row.size,
-          postal: row.postal,
-        },
-        skills: row.skills ? row.skills.split(',') : [],
-        roles: row.roles ? row.roles.split(',') : [],
-        interests: row.interests ? row.interests.split(',') : [],
-        score: row.score,
-      };
-    });
-
-    return projects;
-  }
 }

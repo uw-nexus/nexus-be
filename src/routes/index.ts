@@ -6,6 +6,7 @@ import auth from './auth';
 import students from './students';
 import projects from './projects';
 import contracts from './contracts';
+import search from './search';
 
 const authenticateJwt = passport.authenticate('jwt', { session: false });
 
@@ -14,4 +15,5 @@ export default (app: Application, db: Pool): void => {
   app.use('/students', authenticateJwt, students(db));
   app.use('/projects', authenticateJwt, projects(db));
   app.use('/contracts', authenticateJwt, contracts(db));
+  app.use('/search', authenticateJwt, search(db));
 };

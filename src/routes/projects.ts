@@ -86,26 +86,6 @@ const deleteProject = (srv: ProjectService) => async (req: Request, res: Respons
   }
 };
 
-const searchProjects = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
-  let { filters } = req.body;
-  const { lastScore, lastId } = req.body;
-
-  if (!filters) filters = {};
-  filters.details = filters.details || {};
-  filters.skills = filters.skills || [];
-  filters.roles = filters.roles || [];
-  filters.interests = filters.interests || [];
-
-  try {
-    const projects = await srv.searchProjects(filters, lastScore, lastId);
-    res.json(projects);
-  } catch (error) {
-    res.json({
-      error: (error as Error).message,
-    });
-  }
-};
-
 export default (db: Pool): Router => {
   const router = Router();
   const projectService = new ProjectService(db);
@@ -116,7 +96,6 @@ export default (db: Pool): Router => {
   router.get('/:projectId/contracts', getProjectContracts(projectService));
   router.patch('/:projectId', updateProject(projectService));
   router.delete('/:projectId', deleteProject(projectService));
-  router.post('/search', searchProjects(projectService));
 
   return router;
 };
