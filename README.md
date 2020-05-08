@@ -10,7 +10,7 @@ Install dependencies.
 npm install
 ```
 
-Define your environment variables in a `.env` file, in KEY=VALUE format.
+Define your environment variables in a `.env` file, in KEY=VALUE format. If deploying to GAE, you can write them in your app.yaml instead.
 
 | ENV                  | Default               | Description                           |
 | -------------------- | --------------------- | ------------------------------------- |
@@ -64,3 +64,30 @@ Create your app.yaml for GAE, then run
 ```sh
 npm run deploy
 ```
+
+## Implemented endpoints
+
+| METHOD              | endpoint                       |
+| ------------------- | ------------------------------ |
+|                     | **AUTH**                       |
+| GET                 | /auth/verify                   |
+| POST                | /auth/register                 |
+| POST                | /auth/login                    |
+| GET                 | /auth/student/facebook         |
+| GET, PATCH          | /auth/password-reset           |
+|                     | **STUDENTS**                   |
+| GET                 | /students/:username            |
+| POST, PATCH, DELETE | /students                      |
+| PATCH               | /students                      |
+| DELETE              | /students                      |
+|                     | **PROJECTS**                   |
+| POST                | /projects                      |
+| GET                 | /projects/owned                |
+| GET, PATCH, DELETE  | /projects/:projectId           |
+| GET                 | /projects/:projectId/contracts |
+|                     | **CONTRACTS**                  |
+| GET, POST           | /contracts                     |
+| PATCH               | /contracts/:contractId         |
+|                     | **SEARCH**                     |
+| POST                | /search/projects               |
+| POST                | /search/students               |
