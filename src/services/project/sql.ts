@@ -224,8 +224,8 @@ export const searchProjects = (filters: Project, lastScore: number = null, lastI
         ? `(
               SELECT project_id, COUNT(*) AS count
               FROM project_interest PI
-              JOIN interest F ON F.interest_id = PI.interest_id
-              WHERE F.name IN(${repeatStatement('?', interests)})
+              JOIN interest I ON I.interest_id = PI.interest_id
+              WHERE I.name IN(${repeatStatement('?', interests)})
               GROUP BY project_id
             ) INTERESTS 
             ${skills.length || roles.length ? 'JOIN' : ''}`
@@ -235,7 +235,7 @@ export const searchProjects = (filters: Project, lastScore: number = null, lastI
   `;
 
   const whereSQL = [
-    title ? `P.title LIKE ?` : '',
+    title ? `P.title LIKE CONCAT("%", ?, "%")` : '',
     size ? `SZ.name = ?` : '',
     duration ? `D.name = ?` : '',
     status ? `ST.name = ?` : '',

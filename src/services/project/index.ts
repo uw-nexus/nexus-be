@@ -201,7 +201,7 @@ export default class ProjectService {
     const { interests, skills, roles } = filters;
 
     const m2mParams = [...interests, ...skills, ...roles];
-    const detailsParams = [title ? `%${title}%` : '', size, duration, status];
+    const detailsParams = [title, size, duration, status];
     const finalParams = [...m2mParams, ...detailsParams, lastScore, lastScore, lastId].filter(Boolean);
 
     const [res] = await this.db.execute(SQL.searchProjects(filters, lastScore, lastId), finalParams);

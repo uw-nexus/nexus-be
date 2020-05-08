@@ -57,6 +57,26 @@ const deleteStudent = (srv: StudentService) => async (req: Request, res: Respons
   }
 };
 
+const searchStudents = (srv: StudentService) => async (req: Request, res: Response): Promise<void> => {
+  let { filters } = req.body;
+  const { lastScore, lastId } = req.body;
+
+  if (!filters) filters = {};
+  filters.details = filters.details || {};
+  filters.skills = filters.skills || [];
+  filters.roles = filters.roles || [];
+  filters.interests = filters.interests || [];
+
+  try {
+    const projects = await srv.searchStudents(filters, lastScore, lastId);
+    res.json(projects);
+  } catch (error) {
+    res.json({
+      error: (error as Error).message,
+    });
+  }
+};
+
 export default (db: Pool): Router => {
   const router = Router();
   const studentService = new StudentService(db);
@@ -65,6 +85,7 @@ export default (db: Pool): Router => {
   router.post('/', createStudent(studentService));
   router.patch('/', updateStudent(studentService));
   router.delete('/', deleteStudent(studentService));
+  router.post('/search', searchStudents(studentService));
 
   return router;
 };
