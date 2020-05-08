@@ -90,9 +90,9 @@ export const searchProjects = (filters: Project, lastScore: number = null, lastI
       T.duration,
       T.size,
       T.postal,
-      group_concat(DISTINCT(S.name)) as skills,
-      group_concat(DISTINCT(R.name)) as roles,
-      group_concat(DISTINCT(I.name)) as interests,
+      T1.skills,
+      T2.roles,
+      T3.interests,
       T.score
     FROM (
       SELECT 
@@ -114,13 +114,27 @@ export const searchProjects = (filters: Project, lastScore: number = null, lastI
       ORDER BY score DESC, P.project_id
       LIMIT 20
     ) T
-    LEFT JOIN project_skill PS ON PS.project_id = T.projectId
-    LEFT JOIN skill S ON S.skill_id = PS.skill_id
-    LEFT JOIN project_role PR ON PR.project_id = T.projectId
-    LEFT JOIN role R ON R.role_id = PR.role_id
-    LEFT JOIN project_interest PI ON PI.project_id = T.projectId
-    LEFT JOIN interest I ON I.interest_id = PI.interest_id
-    GROUP BY T.projectId
+    JOIN (
+      SELECT P1.project_id, group_concat(S.name) as skills
+      FROM project P1
+      LEFT JOIN project_skill PS ON PS.project_id = P1.project_id
+      LEFT JOIN skill S ON S.skill_id = PS.skill_id
+      GROUP BY P1.project_id
+    ) T1 ON T.projectId = T1.project_id
+    JOIN (
+      SELECT P1.project_id, group_concat(R.name) as roles
+      FROM project P1 
+      LEFT JOIN project_role PR ON PR.project_id = P1.project_id
+      LEFT JOIN role R ON R.role_id = PR.role_id
+      GROUP BY P1.project_id
+    ) T2 ON T.projectId = T2.project_id
+    JOIN (
+      SELECT P1.project_id, group_concat(I.name) as interests
+      FROM project P1 
+      LEFT JOIN project_interest PI ON PI.project_id = P1.project_id
+      LEFT JOIN interest I ON I.interest_id = PI.interest_id
+      GROUP BY P1.project_id
+    ) T3 ON T.projectId = T3.project_id
   `;
 };
 
@@ -206,9 +220,9 @@ export const searchStudents = (filters: Student, lastScore: number = null, lastI
       T.major1,
       T.major2,
       T.postal,
-      group_concat(DISTINCT(S.name)) as skills,
-      group_concat(DISTINCT(R.name)) as roles,
-      group_concat(DISTINCT(I.name)) as interests,
+      T1.skills,
+      T2.roles,
+      T3.interests,
       T.score
     FROM (
       SELECT 
@@ -231,12 +245,26 @@ export const searchStudents = (filters: Student, lastScore: number = null, lastI
       ORDER BY score DESC, STU.student_id
       LIMIT 20
     ) T
-    LEFT JOIN student_skill SS ON SS.student_id = T.studentId
-    LEFT JOIN skill S ON S.skill_id = SS.skill_id
-    LEFT JOIN student_role SR ON SR.student_id = T.studentId
-    LEFT JOIN role R ON R.role_id = SR.role_id
-    LEFT JOIN student_interest SI ON SI.student_id = T.studentId
-    LEFT JOIN interest I ON I.interest_id = SI.interest_id
-    GROUP BY T.studentId
+    JOIN (
+      SELECT STU1.student_id, group_concat(S.name) as skills
+      FROM student STU1
+      LEFT JOIN student_skill SS ON SS.student_id = STU1.student_id
+      LEFT JOIN skill S ON S.skill_id = SS.skill_id
+      GROUP BY STU1.student_id
+    ) T1 ON T.studentId = T1.student_id
+    JOIN (
+      SELECT STU1.student_id, group_concat(R.name) as roles
+      FROM student STU1 
+      LEFT JOIN student_role SR ON SR.student_id = STU1.student_id
+      LEFT JOIN role R ON R.role_id = SR.role_id
+      GROUP BY STU1.student_id
+    ) T2 ON T.studentId = T2.student_id
+    JOIN (
+      SELECT STU1.student_id, group_concat(I.name) as interests
+      FROM student STU1 
+      LEFT JOIN student_interest SI ON SI.student_id = STU1.student_id
+      LEFT JOIN interest I ON I.interest_id = SI.interest_id
+      GROUP BY STU1.student_id
+    ) T3 ON T.studentId = T3.student_id
   `;
 };
