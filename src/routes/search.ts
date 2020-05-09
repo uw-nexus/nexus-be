@@ -27,7 +27,7 @@ const searchStudents = (srv: SearchService) => async (req: Request, res: Respons
   const { lastScore, lastId } = req.body;
 
   if (!filters) filters = {};
-  filters.details = filters.details || {};
+  filters.profile = filters.profile || {};
   filters.skills = filters.skills || [];
   filters.roles = filters.roles || [];
   filters.interests = filters.interests || [];
