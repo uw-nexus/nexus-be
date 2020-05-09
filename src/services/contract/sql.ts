@@ -1,7 +1,5 @@
-import { Contract } from '../../types';
-
-// [projectid, st./contractrtDate, endDate, status]
-export const insertStudentContract = (contract: Contract): string => `
+// [projectId, studentUsername]
+export const insertStudentContract = (): string => `
   INSERT INTO contract
   VALUES (
     null, ?,
@@ -11,8 +9,6 @@ export const insertStudentContract = (contract: Contract): string => `
       JOIN user U ON U.user_id = S.user_id
       WHERE U.username = ?
     ),
-    ${contract.startDate ? '?,' : ''}
-    ${contract.endDate ? '?,' : ''}
     (SELECT status_id FROM status WHERE name = "Pending"),
     CURDATE(), CURDATE()
   );
@@ -22,14 +18,16 @@ export const insertStudentContract = (contract: Contract): string => `
 export const getStudentContracts = `
   SELECT
     C.contract_id AS contractId,
-    C.start_date AS contractStartDate,
-    C.end_date AS contractEndDate,
-    STA.name AS contractStatus,
-    P.project_id AS projectId,
-    P.title AS projectTitle,
     OWNU.username AS ownerUsername,
     OWNS.first_name AS ownerFirstName,
-    OWNS.last_name AS ownerLastName
+    OWNS.last_name AS ownerLastName,
+    P.project_id AS projectId,
+    P.title AS projectTitle,
+    D.name AS projectDuration,
+    SZ.name AS projectSize,
+    P.status AS projectStatus,
+    P.potal AS projectPostal,
+    STA.name AS contractStatus,
   FROM contract C
   JOIN student STU ON STU.student_id = C.student_id
   JOIN user ME ON ME.user_id = STU.user_id
@@ -37,19 +35,14 @@ export const getStudentContracts = `
   JOIN user OWNU ON OWNU.user_id = P.owner_id
   JOIN student OWNS ON OWNS.user_id = OWNU.user_id
   JOIN status STA ON STA.status_id = C.status_id
+  JOIN team_size SZ ON SZ.size_id = P.size_id
+  JOIN duration D ON D.duration_id = P.duration_id
   WHERE ME.username = ?;
 `;
 
-// [startDate, endDate, status, contractId]
-export const updateStudentContract = (contract: Contract): string => `
+// [status, contractId]
+export const updateContractStatus = (): string => `
   UPDATE contract
-  SET 
-    ${[
-      contract.startDate ? 'start_date = ?' : '',
-      contract.endDate ? 'end_date = ?' : '',
-      contract.status ? 'status_id = (SELECT status_id FROM status WHERE name = ?)' : '',
-    ]
-      .filter(Boolean)
-      .join(', ')}
+  SET status_id = (SELECT status_id FROM status WHERE name = ?)
   WHERE contract_id = ?;
 `;

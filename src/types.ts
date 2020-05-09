@@ -56,7 +56,5 @@ export type Contract = {
   contractId?: string;
   project?: ProjectDetails;
   student?: StudentProfile;
-  startDate?: Date;
-  endDate?: Date;
   status?: string;
 };

@@ -10,11 +10,11 @@ export default class ContractService {
   }
 
   async createStudentContract(contract: Contract): Promise<string> {
-    const { project, student, startDate, endDate } = contract;
+    const { project, student } = contract;
 
     try {
-      const params = [project.projectId, student.user.username, startDate, endDate].filter(Boolean);
-      const [res] = await this.db.execute(SQL.insertStudentContract(contract), params);
+      const params = [project.projectId, student.user.username].filter(Boolean);
+      const [res] = await this.db.execute(SQL.insertStudentContract(), params);
       return res['insertId'];
     } catch (err) {
       throw err;
@@ -29,15 +29,17 @@ export default class ContractService {
           contractId: row.contractId,
           project: {
             projectId: row.projectId,
-            title: row.projectTitle,
             owner: {
               user: { username: row.ownerUsername },
               firstName: row.ownerFirstName,
               lastName: row.ownerLastName,
             },
+            title: row.projectTitle,
+            status: row.projectStatus,
+            duration: row.projectDuration,
+            size: row.projectSize,
+            postal: row.projectPostal,
           },
-          startDate: row.contractStartDate,
-          endDate: row.contractEndDate,
           status: row.contractStatus,
         };
 
@@ -50,11 +52,10 @@ export default class ContractService {
     }
   }
 
-  async updateStudentContract(contractId: string, contract: Contract): Promise<void> {
+  async updateContractStatus(contractId: string, status: string): Promise<void> {
     try {
-      const { startDate, endDate, status } = contract;
-      const params = [startDate, endDate, status, contractId].filter(Boolean);
-      await this.db.execute(SQL.updateStudentContract(contract), params);
+      const params = [status, contractId].filter(Boolean);
+      await this.db.execute(SQL.updateContractStatus(), params);
     } catch (err) {
       throw err;
     }

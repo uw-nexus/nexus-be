@@ -29,12 +29,12 @@ const getStudentContracts = (srv: ContractService) => async (req: Request, res: 
   }
 };
 
-const updateStudentContract = (srv: ContractService) => async (req: Request, res: Response): Promise<void> => {
+const updateContractStatus = (srv: ContractService) => async (req: Request, res: Response): Promise<void> => {
   const { contractId } = req.params;
-  const contract = req.body as Contract;
+  const { status } = req.body as Contract;
 
   try {
-    await srv.updateStudentContract(contractId, contract);
+    await srv.updateContractStatus(contractId, status);
     res.json({ success: `Contract id: ${contractId} updated.` });
   } catch (error) {
     res.json({
@@ -49,7 +49,7 @@ export default (db: Pool): Router => {
 
   router.get('/', getStudentContracts(contractService));
   router.post('/', createStudentContract(contractService));
-  router.patch('/:contractId', updateStudentContract(contractService));
+  router.patch('/:contractId', updateContractStatus(contractService));
 
   return router;
 };
