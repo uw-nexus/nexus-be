@@ -74,7 +74,7 @@ export const searchProjects = (filters: Project, lastScore: number = null, lastI
     duration ? `D.name = ?` : '',
     status ? `ST.name = ?` : '',
     m2mFiltered && lastScore && lastId
-      ? `score < ? OR (score = ? AND P.project_id > ?)`
+      ? `${scoreSQL} < ? OR (${scoreSQL} = ? AND P.project_id > ?)`
       : lastId
       ? `P.project_id > ?`
       : '',
@@ -102,7 +102,7 @@ export const searchProjects = (filters: Project, lastScore: number = null, lastI
         D.name as duration,
         SZ.name as size,
         P.postal as postal,
-        ${m2mFiltered ? scoreSQL : '0'} AS score
+        ${m2mFiltered ? scoreSQL : '0'} as score
       
       FROM ${m2mFiltered ? '' : 'project P'}
       ${m2mJoins}
@@ -203,7 +203,7 @@ export const searchStudents = (filters: Student, lastScore: number = null, lastI
     degree ? `D.name LIKE ?` : '',
     major1 ? `CONCAT(COALESCE(M1.name, ''), " ", COALESCE(M2.name, '')) LIKE CONCAT("%", ?, "%")` : '',
     m2mFiltered && lastScore && lastId
-      ? `score < ? OR (score = ? AND STU.student_id > ?)`
+      ? `${scoreSQL} < ? OR (${scoreSQL} = ? AND STU.student_id > ?)`
       : lastId
       ? `STU.student_id > ?`
       : '',
