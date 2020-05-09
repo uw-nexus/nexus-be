@@ -39,11 +39,12 @@ export default class SearchService {
   }
 
   async searchStudents(filters: Student, lastScore: number = null, lastId: number = null): Promise<Student[]> {
-    const { degree, major1 } = filters.profile;
+    const { firstName, degree, major1 } = filters.profile;
     const { interests, skills, roles } = filters;
 
     const m2mParams = [...interests, ...skills, ...roles];
-    const finalParams = [...m2mParams, degree, major1, lastScore, lastScore, lastId].filter(Boolean);
+    const profileParams = [firstName, firstName, degree, major1];
+    const finalParams = [...m2mParams, ...profileParams, lastScore, lastScore, lastId].filter(Boolean);
 
     const [res] = await this.db.execute(SQL.searchStudents(filters, lastScore, lastId), finalParams);
     const students: Student[] = (res as RowDataPacket[]).map(row => {

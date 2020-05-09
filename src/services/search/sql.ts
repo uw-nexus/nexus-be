@@ -138,9 +138,10 @@ export const searchProjects = (filters: Project, lastScore: number = null, lastI
   `;
 };
 
-// [i1, i2, .., s1, s2, .., r1, r2, .., degree, major, lastScore, lastScore, lastId]
+// [i1, i2, .., s1, s2, .., r1, r2, .., name, name, degree, major, lastScore, lastScore, lastId]
+// search name using firstName field
 export const searchStudents = (filters: Student, lastScore: number = null, lastId: number = null): string => {
-  const { degree, major1 } = filters.profile;
+  const { firstName, degree, major1 } = filters.profile;
   const { interests, skills, roles } = filters;
 
   const m2mTable = interests.length ? 'INTERESTS' : skills.length ? 'SKILLS' : 'ROLES';
@@ -200,6 +201,7 @@ export const searchStudents = (filters: Student, lastScore: number = null, lastI
   `;
 
   const whereSQL = [
+    firstName ? `(STU.first_name LIKE CONCAT(?, "%") OR STU.last_name LIKE CONCAT(?, "%"))` : '',
     degree ? `D.name LIKE ?` : '',
     major1 ? `CONCAT(COALESCE(M1.name, ''), " ", COALESCE(M2.name, '')) LIKE CONCAT("%", ?, "%")` : '',
     m2mFiltered && lastScore && lastId
