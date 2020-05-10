@@ -50,6 +50,7 @@ export default class SearchService {
     const students: Student[] = (res as RowDataPacket[]).map(row => {
       return {
         profile: {
+          studentId: row.studentId,
           user: {
             username: row.username,
           },

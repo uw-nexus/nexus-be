@@ -96,13 +96,13 @@ export const searchProjects = (filters: Project, lastScore: number = null, lastI
       T.score
     FROM (
       SELECT 
-        P.project_id as projectId,
-        P.title as title,
-        ST.name as status,
-        D.name as duration,
-        SZ.name as size,
-        P.postal as postal,
-        ${m2mFiltered ? scoreSQL : '0'} as score
+        P.project_id AS projectId,
+        P.title AS title,
+        ST.name AS status,
+        D.name AS duration,
+        SZ.name AS size,
+        P.postal AS postal,
+        ${m2mFiltered ? scoreSQL : '0'} AS score
       
       FROM ${m2mFiltered ? '' : 'project P'}
       ${m2mJoins}
@@ -115,21 +115,21 @@ export const searchProjects = (filters: Project, lastScore: number = null, lastI
       LIMIT 20
     ) T
     JOIN (
-      SELECT P1.project_id, group_concat(S.name) as skills
+      SELECT P1.project_id, group_concat(S.name) AS skills
       FROM project P1
       LEFT JOIN project_skill PS ON PS.project_id = P1.project_id
       LEFT JOIN skill S ON S.skill_id = PS.skill_id
       GROUP BY P1.project_id
     ) T1 ON T.projectId = T1.project_id
     JOIN (
-      SELECT P1.project_id, group_concat(R.name) as roles
+      SELECT P1.project_id, group_concat(R.name) AS roles
       FROM project P1 
       LEFT JOIN project_role PR ON PR.project_id = P1.project_id
       LEFT JOIN role R ON R.role_id = PR.role_id
       GROUP BY P1.project_id
     ) T2 ON T.projectId = T2.project_id
     JOIN (
-      SELECT P1.project_id, group_concat(I.name) as interests
+      SELECT P1.project_id, group_concat(I.name) AS interests
       FROM project P1 
       LEFT JOIN project_interest PI ON PI.project_id = P1.project_id
       LEFT JOIN interest I ON I.interest_id = PI.interest_id
@@ -215,6 +215,7 @@ export const searchStudents = (filters: Student, lastScore: number = null, lastI
 
   return `
     SELECT
+      T.studentId,
       T.username,
       T.firstName,
       T.lastName,
@@ -228,14 +229,14 @@ export const searchStudents = (filters: Student, lastScore: number = null, lastI
       T.score
     FROM (
       SELECT
-        STU.student_id,
-        U.username as username,
-        STU.first_name as firstName,
-        STU.last_name as lastName,
-        D.name as degree,
-        M1.name as major1,
-        M2.name as major2,
-        STU.postal as postal,
+        STU.student_id AS studentId,
+        U.username AS username,
+        STU.first_name AS firstName,
+        STU.last_name AS lastName,
+        D.name AS degree,
+        M1.name AS major1,
+        M2.name AS major2,
+        STU.postal AS postal,
         ${m2mFiltered ? scoreSQL : '0'} AS score
       
       FROM ${m2mFiltered ? '' : 'student STU'}
@@ -250,25 +251,25 @@ export const searchStudents = (filters: Student, lastScore: number = null, lastI
       LIMIT 20
     ) T
     JOIN (
-      SELECT STU1.student_id, group_concat(S.name) as skills
+      SELECT STU1.student_id, group_concat(S.name) AS skills
       FROM student STU1
       LEFT JOIN student_skill SS ON SS.student_id = STU1.student_id
       LEFT JOIN skill S ON S.skill_id = SS.skill_id
       GROUP BY STU1.student_id
-    ) T1 ON T.student_id = T1.student_id
+    ) T1 ON T.studentId = T1.student_id
     JOIN (
-      SELECT STU1.student_id, group_concat(R.name) as roles
+      SELECT STU1.student_id, group_concat(R.name) AS roles
       FROM student STU1 
       LEFT JOIN student_role SR ON SR.student_id = STU1.student_id
       LEFT JOIN role R ON R.role_id = SR.role_id
       GROUP BY STU1.student_id
-    ) T2 ON T.student_id = T2.student_id
+    ) T2 ON T.studentId = T2.student_id
     JOIN (
-      SELECT STU1.student_id, group_concat(I.name) as interests
+      SELECT STU1.student_id, group_concat(I.name) AS interests
       FROM student STU1 
       LEFT JOIN student_interest SI ON SI.student_id = STU1.student_id
       LEFT JOIN interest I ON I.interest_id = SI.interest_id
       GROUP BY STU1.student_id
-    ) T3 ON T.student_id = T3.student_id
+    ) T3 ON T.studentId = T3.student_id
   `;
 };
