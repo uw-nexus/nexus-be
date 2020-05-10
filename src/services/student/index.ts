@@ -15,15 +15,11 @@ export default class StudentService {
 
     try {
       conn.beginTransaction();
-
       const studentParams = [username, firstName, lastName, email];
-
       const [studentRes] = await conn.execute(SQL.insertStudent, studentParams);
       const studentId = studentRes['insertId'];
-
       await conn.commit();
       conn.release();
-
       return studentId;
     } catch (err) {
       await conn.rollback();
