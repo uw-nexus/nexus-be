@@ -7,10 +7,6 @@ const repeatStatement = (statement: string, items: string[]): string =>
         .join(', ')
     : `''`;
 
-export const getDurationChoices = `SELECT name FROM duration;`;
-export const getTeamSizeChoices = `SELECT name FROM team_size;`;
-export const getDegreeChoices = `SELECT name FROM degree;`;
-
 // [i1, i2, .., s1, s2, .., r1, r2, .., title, size, duration, status, lastScore, lastScore, lastId]
 export const searchProjects = (filters: Project, lastScore: number = null, lastId: number = null): string => {
   const { title, size, duration, status } = filters.details;

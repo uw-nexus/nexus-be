@@ -9,20 +9,6 @@ export default class SearchService {
     this.db = promisePool;
   }
 
-  async getProjectFilterChoices(): Promise<{ durations: string[]; sizes: string[] }> {
-    const [dRes] = await this.db.execute(SQL.getDurationChoices);
-    const [sRes] = await this.db.execute(SQL.getTeamSizeChoices);
-    const durations: string[] = (dRes as RowDataPacket[]).map(row => row.name);
-    const sizes: string[] = (sRes as RowDataPacket[]).map(row => row.name);
-    return { durations, sizes };
-  }
-
-  async getStudentFilterChoices(): Promise<{ degrees: string[] }> {
-    const [dRes] = await this.db.execute(SQL.getDegreeChoices);
-    const degrees: string[] = (dRes as RowDataPacket[]).map(row => row.name);
-    return { degrees };
-  }
-
   async searchProjects(filters: Project, lastScore: number = null, lastId: number = null): Promise<Project[]> {
     const { title, size, duration, status } = filters.details;
     const { interests, skills, roles } = filters;
