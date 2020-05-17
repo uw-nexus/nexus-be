@@ -25,16 +25,17 @@ export const getStudentContracts = `
     P.title AS projectTitle,
     D.name AS projectDuration,
     SZ.name AS projectSize,
-    P.status AS projectStatus,
-    P.potal AS projectPostal,
-    STA.name AS contractStatus,
+    PSTAT.name AS projectStatus,
+    P.postal AS projectPostal,
+    CSTAT.name AS contractStatus
   FROM contract C
   JOIN student STU ON STU.student_id = C.student_id
   JOIN user ME ON ME.user_id = STU.user_id
   JOIN project P ON P.project_id = C.project_id
   JOIN user OWNU ON OWNU.user_id = P.owner_id
   JOIN student OWNS ON OWNS.user_id = OWNU.user_id
-  JOIN status STA ON STA.status_id = C.status_id
+  JOIN status CSTAT ON CSTAT.status_id = C.status_id
+  JOIN status PSTAT ON PSTAT.status_id = C.status_id
   JOIN team_size SZ ON SZ.size_id = P.size_id
   JOIN duration D ON D.duration_id = P.duration_id
   WHERE ME.username = ?;
