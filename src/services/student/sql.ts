@@ -32,6 +32,7 @@ export const getStudentProfile = `
     STU.last_name AS lastName,
     STU.email AS email,
     STU.dob AS dob,
+    STU.bio AS bio,
     SCH.name AS school,
     D.name AS degree,
     M1.name AS major1,
@@ -77,11 +78,12 @@ export const getStudentInterests = `
   WHERE STU.student_id = ?;
 `;
 
-// [dob, school, degree, major1, major2, resume, linkedin, website, postal, studentId]
+// [dob, bio, school, degree, major1, major2, resume, linkedin, website, postal, studentId]
 export const updateStudentProfile = (profile: StudentProfile): string => `
   UPDATE student
   SET ${[
     profile.dob ? `dob = ?` : '',
+    profile.bio ? `bio = ?` : '',
     profile.school ? `school_id = (SELECT school_id FROM school WHERE name = ?)` : '',
     profile.degree ? `degree_id = (SELECT degree_id FROM degree WHERE name = ?)` : '',
     profile.major1 ? `major1_id = (SELECT major_id FROM major WHERE name = ?)` : '',

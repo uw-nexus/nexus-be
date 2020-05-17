@@ -20,6 +20,7 @@ export type StudentProfile = {
   lastName?: string;
   email?: string;
   dob?: Date;
+  bio?: string;
   school?: string;
   degree?: string;
   standing?: string;

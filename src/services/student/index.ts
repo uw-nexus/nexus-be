@@ -48,6 +48,7 @@ export default class StudentService {
         lastName: res[0].lastName,
         email: res[0].email,
         dob: res[0].dob ? new Date(res[0].dob) : null,
+        bio: res[0].bio || '',
         school: res[0].school || '',
         degree: res[0].degree || '',
         major1: res[0].major1 || '',
@@ -92,6 +93,7 @@ export default class StudentService {
 
       const profileParams = [
         profile.dob,
+        profile.bio,
         profile.school,
         profile.degree,
         profile.major1,
