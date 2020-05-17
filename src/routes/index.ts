@@ -19,5 +19,5 @@ export default (app: Application, db: Pool): void => {
   app.use('/contracts', authenticateJwt, contracts(db));
   app.use('/search', authenticateJwt, search(db));
   app.use('/saved', authenticateJwt, saved(db));
-  app.use('/choices', authenticateJwt, lookup(db));
+  app.use('/choices', lookup(db));
 };
