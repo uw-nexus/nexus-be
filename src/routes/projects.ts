@@ -1,14 +1,15 @@
 import { Router, Request, Response } from 'express';
 import { Pool } from 'mysql2/promise';
 import ProjectService from '../services/project';
-import { User, Project, ProjectDetails } from '../types';
+import { User, Project } from '../types';
 
 const createProject = (srv: ProjectService) => async (req: Request, res: Response): Promise<void> => {
-  const details = req.body as ProjectDetails;
+  const project = req.body as Project;
   const { username } = req.user as User;
 
   try {
-    const projectId = await srv.createProject(username, details);
+    const projectId = await srv.createProject(username, project.details);
+    await srv.updateProject(username, projectId, project);
     res.json({ projectId });
   } catch (error) {
     res.json({
