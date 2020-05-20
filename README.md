@@ -64,36 +64,3 @@ Create your app.yaml for GAE, then run
 ```sh
 npm run deploy
 ```
-
-## Implemented endpoints
-
-| METHOD              | endpoint                       |
-| ------------------- | ------------------------------ |
-|                     | **AUTH**                       |
-| GET                 | /auth/verify                   |
-| POST                | /auth/register                 |
-| POST                | /auth/login                    |
-| GET                 | /auth/student/facebook         |
-| GET, PATCH          | /auth/password-reset           |
-|                     | **STUDENTS**                   |
-| GET                 | /students/:username            |
-| POST, PATCH, DELETE | /students                      |
-|                     | **PROJECTS**                   |
-| POST                | /projects                      |
-| GET                 | /projects/owned                |
-| GET, PATCH, DELETE  | /projects/:projectId           |
-| GET                 | /projects/:projectId/contracts |
-|                     | **CONTRACTS**                  |
-| GET, POST           | /contracts                     |
-| PATCH               | /contracts/:contractId         |
-|                     | **SEARCH**                     |
-| POST                | /search/projects               |
-| POST                | /search/students               |
-|                     | **SAVED**                      |
-| GET                 | /saved                         |
-| POST, DELETE        | /saved/projects/:projectId     |
-| POST, DELETE        | /saved/students/:username      |
-|                     | **CHOIES**                     |
-| GET                 | /choices                       |
-| GET                 | /choices/projects              |
-| GET                 | /choices/students              |

@@ -15,7 +15,7 @@ export default class UserService {
 
     try {
       const passwordHash = await bcrypt.hash(password, 10);
-      const [res] = await this.db.execute(SQL.insertUser, [userType, username, passwordHash]);
+      const [res] = await this.db.execute(SQL.insertUser, [userType || 'Student', username, passwordHash]);
       const userId = res['insertId'];
       return userId;
     } catch (err) {

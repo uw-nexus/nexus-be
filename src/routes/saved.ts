@@ -3,6 +3,12 @@ import { Pool } from 'mysql2/promise';
 import SaveService from '../services/save';
 import { User } from '../types';
 
+/**
+ * @apiDefine SaveGroup Save API
+ *
+ * Handles all saving operations, for both Project and Student.
+ */
+
 const getSavedEntityIds = (srv: SaveService) => async (req: Request, res: Response): Promise<void> => {
   const { username } = req.user as User;
 
@@ -76,10 +82,60 @@ export default (db: Pool): Router => {
   const router = Router();
   const saveService = new SaveService(db);
 
+  /**
+   * @api {get} /saved Get saved Projects and Students
+   * @apiGroup SaveGroup
+   * @apiName GetSavedEntities
+   *
+   * @apiUse JwtHeader
+   *
+   * @apiSuccess {String[]} projects   ID's of saved Projects
+   * @apiSuccess {String[]} student    Usernames of saved Students
+   */
   router.get('/', getSavedEntityIds(saveService));
+
+  /**
+   * @api {post} /saved/projects/:projectId Save a Project
+   * @apiGroup SaveGroup
+   * @apiName SaveProject
+   *
+   * @apiUse JwtHeader
+   *
+   * @apiParam {String} projectId Project ID
+   */
   router.post('/projects/:projectId', saveProject(saveService));
+
+  /**
+   * @api {delete} /saved/projects/:projectId Unsave a Project
+   * @apiGroup SaveGroup
+   * @apiName UnsaveProject
+   *
+   * @apiUse JwtHeader
+   *
+   * @apiParam {String} projectId Project ID
+   */
   router.delete('/projects/:projectId', unsaveProject(saveService));
+
+  /**
+   * @api {post} /saved/students/:targetUsername Save a Student profile
+   * @apiGroup SaveGroup
+   * @apiName SaveProject
+   *
+   * @apiUse JwtHeader
+   *
+   * @apiParam {String} username Student username
+   */
   router.post('/students/:targetUsername', saveStudent(saveService));
+
+  /**
+   * @api {delete} /saved/students/:targetUsername Unsave a Student profile
+   * @apiGroup SaveGroup
+   * @apiName UnsaveProject
+   *
+   * @apiUse JwtHeader
+   *
+   * @apiParam {String} username Student username
+   */
   router.delete('/students/:targetUsername', unsaveStudent(saveService));
 
   return router;

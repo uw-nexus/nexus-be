@@ -15,6 +15,8 @@ app.use(helmet());
 app.use(cors({ credentials: true, origin: FE_ADDR }));
 app.use(cookieParser());
 
+app.use('/documentation', express.static('public'));
+
 app.use(passport.initialize());
 addPassports(db.promisePool);
 

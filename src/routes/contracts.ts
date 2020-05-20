@@ -47,6 +47,7 @@ export default (db: Pool): Router => {
   const router = Router();
   const contractService = new ContractService(db);
 
+  // TODO: apidoc for all
   router.get('/', getStudentContracts(contractService));
   router.post('/', createStudentContract(contractService));
   router.patch('/:contractId', updateContractStatus(contractService));

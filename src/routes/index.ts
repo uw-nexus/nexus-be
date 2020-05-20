@@ -8,7 +8,7 @@ import projects from './projects';
 import contracts from './contracts';
 import search from './search';
 import saved from './saved';
-import lookup from './lookup';
+import options from './options';
 
 const authenticateJwt = passport.authenticate('jwt', { session: false });
 
@@ -19,5 +19,5 @@ export default (app: Application, db: Pool): void => {
   app.use('/contracts', authenticateJwt, contracts(db));
   app.use('/search', authenticateJwt, search(db));
   app.use('/saved', authenticateJwt, saved(db));
-  app.use('/choices', lookup(db));
+  app.use('/options', options(db));
 };

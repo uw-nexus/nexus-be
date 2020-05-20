@@ -4,13 +4,14 @@
   "description": "Projects platform between non-profit organizations (NPO) and students.",
   "main": "src/app.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run apidoc",
     "dev": "nodemon",
     "start": "node build/app.js",
     "lint": "eslint './**/*.ts'",
     "lint:fix": "eslint './**/*.ts' --fix",
     "gcp-build": "npm run build",
-    "deploy": "gcloud app deploy"
+    "deploy": "gcloud app deploy",
+    "apidoc": "node_modules/apidoc/bin/apidoc -i src/ -o public"
   },
   "keywords": [],
   "author": "",
@@ -46,6 +47,7 @@
     "@types/passport-local": "^1.0.33",
     "@typescript-eslint/eslint-plugin": "^2.6.0",
     "@typescript-eslint/parser": "^2.6.0",
+    "apidoc": "^0.22.1",
     "eslint": "^6.6.0",
     "eslint-config-prettier": "^6.5.0",
     "eslint-plugin-prettier": "^3.1.1",

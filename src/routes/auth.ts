@@ -8,6 +8,19 @@ import { JWT_SECRET, FE_ADDR, DOMAIN } from '../config';
 import { Pool } from 'mysql2/promise';
 import { User } from '../types';
 
+/**
+ * @apiDefine AuthGroup Auth API
+ *
+ * Handles all authentication related features.
+ */
+
+/**
+ * @apiDefine JwtHeader JwtHeader    Header params to include to pass all JWT-protected routes
+ *
+ * @apiHeader {String}  cookie       Includes jwt token in `jwt` field, e.g. `jwt={token}`
+ * @apiHeader {Boolean} credentials  Must be set to `true`
+ */
+
 const register = (srv: UserService) => async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const user = req.body as User;
 
@@ -72,15 +85,61 @@ export default (db: Pool): Router => {
     failureRedirect: '/login',
   };
 
+  /**
+   * @api {get} /auth/verify Verify JWT token
+   * @apiGroup AuthGroup
+   * @apiName VerifyJWT
+   *
+   * @apiUse JwtHeader
+   */
   router.get('/verify', passport.authenticate('jwt', { session: false }), generateToken);
 
+  /**
+   * @api {post} /auth/register Create a new User
+   * @apiGroup AuthGroup
+   * @apiName CreateUser
+   *
+   * @apiParam {String} username Username
+   * @apiParam {String} password Password
+   * @apiParam {String} [userType] Optional user type, defaults to 'Student'
+   */
   router.post('/register', register(userService), generateToken);
+
+  /**
+   * @api {post} /auth/login Login with username & password
+   * @apiGroup AuthGroup
+   * @apiName LogInLocal
+   *
+   * @apiParam {String} username Username
+   * @apiParam {String} password Password
+   */
   router.post('/login', passport.authenticate('local', authOpts), generateToken);
 
+  /**
+   * @api {get} /auth/student/facebook Login with Facebook
+   * @apiGroup AuthGroup
+   * @apiName LogInFacebook
+   */
   router.get('/student/facebook', passport.authenticate('facebook-student', authOpts));
   router.get('/student/facebook/callback', passport.authenticate('facebook-student', authOpts), generateToken);
 
+  /**
+   * @api {get} /auth/password-reset Request password reset token by email
+   * @apiDescription An email with a password reset link will be sent, if a user is registered with the email.
+   * @apiGroup AuthGroup
+   * @apiName RequestPasswordReset
+   *
+   * @apiParam {String} email Email, as a query param (e.g. `/auth/password-reset?email=your@email.com`)
+   */
   router.get('/password-reset', requestPasswordReset(userService));
+
+  /**
+   * @api {patch} /auth/password-reset Reset password
+   * @apiGroup AuthGroup
+   * @apiName ResetPassword
+   *
+   * @apiHeader {String}  Authorization  `Bearer {jwt}`
+   */
   router.patch('/password-reset', passport.authenticate('jwt', { session: false }), resetPassword(userService));
 
   return router;
