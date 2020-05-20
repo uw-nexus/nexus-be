@@ -78,8 +78,6 @@ npm run deploy
 |                     | **STUDENTS**                   |
 | GET                 | /students/:username            |
 | POST, PATCH, DELETE | /students                      |
-| PATCH               | /students                      |
-| DELETE              | /students                      |
 |                     | **PROJECTS**                   |
 | POST                | /projects                      |
 | GET                 | /projects/owned                |
@@ -91,3 +89,11 @@ npm run deploy
 |                     | **SEARCH**                     |
 | POST                | /search/projects               |
 | POST                | /search/students               |
+|                     | **SAVED**                      |
+| GET                 | /saved                         |
+| POST, DELETE        | /saved/projects/:projectId     |
+| POST, DELETE        | /saved/students/:username      |
+|                     | **CHOIES**                     |
+| GET                 | /choices                       |
+| GET                 | /choices/projects              |
+| GET                 | /choices/students              |
