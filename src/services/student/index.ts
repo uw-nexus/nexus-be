@@ -91,20 +91,21 @@ export default class StudentService {
       conn.beginTransaction();
       const studentId = await this.getStudentId(username);
 
-      const profileParams = [
-        profile.dob,
-        profile.bio,
-        profile.school,
-        profile.degree,
-        profile.major1,
-        profile.major2,
-        profile.resume,
-        profile.linkedin,
-        profile.website,
-        profile.postal,
-        profile.photoUrl,
-      ].filter(Boolean);
-      await conn.execute(SQL.updateStudentProfile(profile), [...profileParams, studentId]);
+      const params = [
+        profile.dob || null,
+        profile.bio || null,
+        profile.school || null,
+        profile.degree || null,
+        profile.major1 || null,
+        profile.major2 || null,
+        profile.resume || null,
+        profile.linkedin || null,
+        profile.website || null,
+        profile.postal || null,
+        profile.photoUrl || null,
+        studentId,
+      ];
+      await conn.execute(SQL.updateStudentProfile, params);
 
       if (skills.length) {
         await conn.execute(SQL.addToArrayCatalog('skill', skills), skills);

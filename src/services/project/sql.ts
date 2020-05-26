@@ -1,5 +1,3 @@
-import { ProjectDetails } from '../../types';
-
 const repeatStatement = (statement: string, items: string[]): string =>
   items.length
     ? Array(items.length)
@@ -16,7 +14,7 @@ export const getOwnerUsername = `
 `;
 
 // [username, title, description, size, duration, postal]
-export const insertProject = (): string => `
+export const insertProject = `
   INSERT INTO project
   VALUES (
     null,
@@ -125,20 +123,16 @@ export const getProjectContracts = `
 `;
 
 // [title, description, size, duration, status, postal, projectId]
-export const updateProjectDetails = (details: ProjectDetails): string => `
+export const updateProjectDetails = `
   UPDATE project
   SET
-    ${[
-      details.title ? 'title = ?' : '',
-      details.description ? 'description = ?' : '',
-      details.size ? 'size_id = (SELECT size_id FROM team_size WHERE name = ?)' : '',
-      details.duration ? 'duration_id = (SELECT duration_id FROM duration WHERE name = ?)' : '',
-      details.status ? 'status_id = (SELECT status_id FROM status WHERE name = ?)' : '',
-      details.postal ? 'postal = ?' : '',
-      'updated_at = CURDATE()',
-    ]
-      .filter(Boolean)
-      .join(', ')}
+    title = COALESCE(?, title),
+    description = COALESCE(?, description),
+    size_id = COALESCE((SELECT size_id FROM team_size TS WHERE name = ?), size_id),
+    duration_id = COALESCE((SELECT duration_id FROM duration WHERE name = ?), duration_id),
+    status_id = COALESCE((SELECT status_id FROM status WHERE name = ?), status_id),
+    postal = COALESCE(?, postal),
+    updated_at = CURDATE()
   WHERE project_id = ?;
 `;
 

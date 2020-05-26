@@ -1,5 +1,3 @@
-import { StudentProfile } from '../../types';
-
 const repeatStatement = (statement: string, items: string[]): string =>
   items.length
     ? Array(items.length)
@@ -79,23 +77,20 @@ export const getStudentInterests = `
 `;
 
 // [dob, bio, school, degree, major1, major2, resume, linkedin, website, postal, studentId]
-export const updateStudentProfile = (profile: StudentProfile): string => `
+export const updateStudentProfile = `
   UPDATE student
-  SET ${[
-    profile.dob ? `dob = ?` : '',
-    profile.bio ? `bio = ?` : '',
-    profile.school ? `school_id = (SELECT school_id FROM school WHERE name = ?)` : '',
-    profile.degree ? `degree_id = (SELECT degree_id FROM degree WHERE name = ?)` : '',
-    profile.major1 ? `major1_id = (SELECT major_id FROM major WHERE name = ?)` : '',
-    profile.major2 ? `major2_id = (SELECT major_id FROM major WHERE name = ?)` : '',
-    profile.resume ? `resume = ?` : '',
-    profile.linkedin ? `linkedin = ?` : '',
-    profile.website ? `website = ?` : '',
-    profile.postal ? `postal = ?` : '',
-    profile.photoUrl ? `photoUrl = ?` : '',
-  ]
-    .filter(Boolean)
-    .join(', ')}
+  SET 
+    dob = COALESCE(?, dob),
+    bio = COALESCE(?, bio),
+    school_id = COALESCE((SELECT school_id FROM school WHERE name = ?), school_id),
+    degree_id = COALESCE((SELECT degree_id FROM degree WHERE name = ?), degree_id),
+    major1_id = COALESCE((SELECT major_id FROM major WHERE name = ?), major1_id),
+    major2_id = COALESCE((SELECT major_id FROM major WHERE name = ?), major2_id),
+    resume = COALESCE(?, resume),
+    linkedin = COALESCE(?, linkedin),
+    website = COALESCE(?, website),
+    postal = COALESCE(?, postal),
+    photo_url = COALESCE(?, photo_url)
   WHERE student_id = ?;
 `;
 

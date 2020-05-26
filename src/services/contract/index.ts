@@ -13,8 +13,8 @@ export default class ContractService {
     const { project, student } = contract;
 
     try {
-      const params = [project.projectId, student.user.username].filter(Boolean);
-      const [res] = await this.db.execute(SQL.insertStudentContract(), params);
+      const params = [project.projectId, student.user.username];
+      const [res] = await this.db.execute(SQL.insertStudentContract, params);
       return res['insertId'];
     } catch (err) {
       throw err;
@@ -54,8 +54,7 @@ export default class ContractService {
 
   async updateContractStatus(contractId: string, status: string): Promise<void> {
     try {
-      const params = [status, contractId].filter(Boolean);
-      await this.db.execute(SQL.updateContractStatus(), params);
+      await this.db.execute(SQL.updateContractStatus, [status, contractId]);
     } catch (err) {
       throw err;
     }

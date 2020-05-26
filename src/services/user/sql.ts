@@ -6,7 +6,11 @@ export const insertUser = `
 
 // [username]
 export const findUser = `
-  SELECT U.user_id AS userId, U.username, U.password, T.name AS userType
+  SELECT
+    U.user_id AS userId,
+    U.username,
+    U.password,
+    T.name AS userType
   FROM user U
   JOIN user_type T ON T.user_type_id = U.user_type_id
   WHERE username = ?;

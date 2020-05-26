@@ -23,7 +23,7 @@ export default class ProjectService {
     try {
       conn.beginTransaction();
       const projectParams = [username, title, description, size, duration, postal];
-      const [projectRes] = await conn.execute(SQL.insertProject(), projectParams);
+      const [projectRes] = await conn.execute(SQL.insertProject, projectParams);
       const projectId = projectRes['insertId'];
 
       await conn.commit();
@@ -133,15 +133,16 @@ export default class ProjectService {
       conn.beginTransaction();
 
       if (details) {
-        const projectParams = [
-          details.title,
-          details.description,
-          details.size,
-          details.duration,
-          details.status,
-          details.postal,
-        ].filter(Boolean);
-        await conn.execute(SQL.updateProjectDetails(details), [...projectParams, projectId]);
+        const params = [
+          details.title || null,
+          details.description || null,
+          details.size || null,
+          details.duration || null,
+          details.status || null,
+          details.postal || null,
+          projectId,
+        ];
+        await conn.execute(SQL.updateProjectDetails, params);
       }
 
       if (skills && skills.length) {

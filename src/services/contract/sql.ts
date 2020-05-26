@@ -1,5 +1,5 @@
 // [projectId, studentUsername]
-export const insertStudentContract = (): string => `
+export const insertStudentContract = `
   INSERT INTO contract
   VALUES (
     null, ?,
@@ -42,7 +42,7 @@ export const getStudentContracts = `
 `;
 
 // [status, contractId]
-export const updateContractStatus = (): string => `
+export const updateContractStatus = `
   UPDATE contract
   SET status_id = (SELECT status_id FROM status WHERE name = ?)
   WHERE contract_id = ?;
