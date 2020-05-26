@@ -33,6 +33,8 @@ Define your environment variables in a `.env` file, in KEY=VALUE format. If depl
 | GOOGLE_AUTH_CODE     | _null_                | Google one-time auth code (for setup) |
 | GOOGLE_ACCESS_TOKEN  | _null_                | Google access token                   |
 | GOOGLE_REFRESH_TOKEN | _null_                | Google refresh token                  |
+| ALGOLIA_APP_ID       | _null_                | Algolia app ID                        |
+| ALGOLIA_API_KEY      | _null_                | Algolia admin PI key                  |
 
 ## Development
 

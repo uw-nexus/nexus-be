@@ -5,10 +5,11 @@ const repeatStatement = (statement: string, items: string[]): string =>
         .join(', ')
     : `''`;
 
-// [username, firstName, lastName, email]
+// [algoliaObjectId, username, firstName, lastName, email]
 export const insertStudent = `
-  INSERT INTO student(user_id, first_name, last_name, email, joined_at)
+  INSERT INTO student(search_id, user_id, first_name, last_name, email, joined_at)
   VALUES (
+    ?,
     (SELECT user_id FROM user WHERE username = ?), 
     ?, ?, ?, 
     CURDATE()

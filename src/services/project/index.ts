@@ -2,11 +2,18 @@ import { Pool, RowDataPacket } from 'mysql2/promise';
 import { Project, ProjectDetails, Contract } from '../../types';
 import * as SQL from './sql';
 
+import algoliasearch, { SearchIndex } from 'algoliasearch';
+import { ALGOLIA_APP_ID, ALGOLIA_API_KEY } from '../../config';
+
 export default class ProjectService {
   db: Pool;
+  searchIndex: SearchIndex;
+  SEARCH_INDEX_NAME = 'projects';
 
   constructor(promisePool: Pool) {
     this.db = promisePool;
+    const searchClient = algoliasearch(ALGOLIA_APP_ID, ALGOLIA_API_KEY);
+    this.searchIndex = searchClient.initIndex(this.SEARCH_INDEX_NAME);
   }
 
   async validateOwner(projectId: string, username: string): Promise<void> {
@@ -29,6 +36,7 @@ export default class ProjectService {
       await conn.commit();
       conn.release();
 
+      this.searchIndex.saveObject({ objectID: projectId, teamSize: size, duration, postal });
       return projectId;
     } catch (err) {
       await conn.rollback();
@@ -171,6 +179,20 @@ export default class ProjectService {
 
       await conn.commit();
       conn.release();
+
+      const { object } = await this.searchIndex.getObject(projectId);
+
+      this.searchIndex.partialUpdateObject({
+        objectID: projectId,
+        title: details.title,
+        status: details.status || object.status,
+        teamSize: details.size || object.teamSize,
+        duration: details.duration || object.duration,
+        postal: details.postal || object.postal,
+        skills,
+        roles,
+        interests,
+      });
     } catch (err) {
       await conn.rollback();
       conn.release();
@@ -190,6 +212,8 @@ export default class ProjectService {
       await conn.execute(SQL.deleteProject, [projectId]);
       await conn.commit();
       conn.release();
+
+      this.searchIndex.deleteObject(projectId);
     } catch (err) {
       await conn.rollback();
       conn.release();

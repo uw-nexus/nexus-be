@@ -29,3 +29,6 @@ export const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET || '';
 
 export const EMAIL_ADDR = process.env.EMAIL_ADDR || '';
 export const EMAIL_NAME = process.env.EMAIL_NAME || '';
+
+export const ALGOLIA_APP_ID = process.env.ALGOLIA_APP_ID || '';
+export const ALGOLIA_API_KEY = process.env.ALGOLIA_API_KEY || '';
