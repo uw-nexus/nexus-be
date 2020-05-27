@@ -66,3 +66,7 @@ Create your app.yaml for GAE, then run
 ```sh
 npm run deploy
 ```
+
+## Documentation
+
+Use [apiDoc](https://apidocjs.com/) for in-line API documentation. It's configured to re-build on every save during development, and served in `/documentation`.
