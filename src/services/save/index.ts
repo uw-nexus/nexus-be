@@ -14,8 +14,8 @@ export default class SaveService {
       const [studentsRes] = await this.db.execute(SQL.getSavedStudents, [username]);
 
       return {
-        projects: (projectsRes as RowDataPacket[]).map(({ projectId }) => projectId),
-        students: (studentsRes as RowDataPacket[]).map(({ username }) => username),
+        projects: (projectsRes as RowDataPacket[]).map(({ projectId }) => String(projectId)),
+        students: (studentsRes as RowDataPacket[]).map(({ username }) => String(username)),
       };
     } catch (err) {
       throw err;
