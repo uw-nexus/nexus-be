@@ -9,12 +9,18 @@ export default class ContractService {
     this.db = promisePool;
   }
 
-  async createStudentContract(contract: Contract): Promise<string> {
-    const { project, student } = contract;
+  async validateContract(actorUsername: string, projectId: string, studentUsername: string): Promise<void> {
+    const [res] = await this.db.execute(SQL.getOwnerUsername, [projectId]);
+    if (!res[0] || (actorUsername !== res[0].username && actorUsername !== studentUsername)) {
+      throw new Error('Unauthorized operation on project.');
+    }
+  }
+
+  async createStudentContract(actorUsername: string, projectId: string, studentUsername: string): Promise<string> {
+    await this.validateContract(actorUsername, projectId, studentUsername);
 
     try {
-      const params = [project.projectId, student.user.username];
-      const [res] = await this.db.execute(SQL.insertStudentContract, params);
+      const [res] = await this.db.execute(SQL.insertStudentContract, [projectId, studentUsername]);
       return res['insertId'];
     } catch (err) {
       throw err;

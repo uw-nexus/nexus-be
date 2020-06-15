@@ -1,3 +1,11 @@
+// [projectId]
+export const getOwnerUsername = `
+  SELECT U.username
+  FROM user U
+  JOIN project P ON P.owner_id = U.user_id
+  WHERE P.project_id = ?;
+`;
+
 // [projectId, studentUsername]
 export const insertStudentContract = `
   INSERT INTO contract
@@ -9,7 +17,7 @@ export const insertStudentContract = `
       JOIN user U ON U.user_id = S.user_id
       WHERE U.username = ?
     ),
-    (SELECT status_id FROM status WHERE name = "Pending"),
+    (SELECT status_id FROM status WHERE name = "Active"),
     CURDATE(), CURDATE()
   );
 `;

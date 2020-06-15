@@ -4,10 +4,11 @@ import ContractService from '../services/contract';
 import { User, Contract } from '../types';
 
 const createStudentContract = (srv: ContractService) => async (req: Request, res: Response): Promise<void> => {
-  const contract = req.body as Contract;
+  const { projectId, studentUsername } = req.body;
+  const actor = req.user as User;
 
   try {
-    const contractId = await srv.createStudentContract(contract);
+    const contractId = await srv.createStudentContract(actor.username, projectId, studentUsername);
     res.json({ contractId });
   } catch (error) {
     res.json({
