@@ -20,14 +20,15 @@ export default class StudentService {
     const { firstName, lastName, email } = profile;
     const conn = await this.db.getConnection();
 
-    const { objectID } = await this.searchIndex.saveObject(
-      { firstName, lastName, username },
-      { autoGenerateObjectIDIfNotExist: true },
-    );
+    this.searchIndex.saveObject({
+      objectID: username,
+      firstName,
+      lastName,
+    });
 
     try {
       conn.beginTransaction();
-      const studentParams = [objectID, username, firstName, lastName, email];
+      const studentParams = [username, username, firstName, lastName, email];
       const [studentRes] = await conn.execute(SQL.insertStudent, studentParams);
       const studentId = studentRes['insertId'];
       await conn.commit();
@@ -37,7 +38,7 @@ export default class StudentService {
       await conn.rollback();
       conn.release();
 
-      this.searchIndex.deleteObject(objectID);
+      this.searchIndex.deleteObject(username);
       throw err;
     }
   }
