@@ -32,6 +32,15 @@ export default class UserService {
     }
   }
 
+  async findUserByEmail(email: string): Promise<User> {
+    const [res] = await this.db.execute(SQL.findUserByEmail, [email]);
+    if (res[0]) {
+      return res[0] as User;
+    } else {
+      throw new Error(`user not found`);
+    }
+  }
+
   async resetUserPassword(username: string, password: string): Promise<void> {
     try {
       const passwordHash = await bcrypt.hash(password, 10);

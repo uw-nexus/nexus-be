@@ -37,8 +37,8 @@ const requestPasswordReset = (srv: UserService) => async (req: Request, res: Res
   const { email } = req.query;
 
   try {
-    await srv.findUser(email);
-    const jwtToken = jwt.sign({ username: email }, JWT_SECRET, { expiresIn: '12h' });
+    const user = await srv.findUserByEmail(email);
+    const jwtToken = jwt.sign({ username: user.username }, JWT_SECRET, { expiresIn: '12h' });
     await mailer.sendPasswordResetIntru(email, jwtToken);
     res.send('Email sent');
   } catch (error) {

@@ -65,11 +65,11 @@ const fb = (userSrv: UserService, profileSrv: StudentService, userType: string):
     let user = null;
 
     try {
-      user = await userSrv.findUser(`facebook-${userData.id}`);
+      user = await userSrv.findUser(userData.email);
       user.provider = 'facebook';
     } catch {
       user = {
-        username: `facebook-${userData.id}`,
+        username: userData.email,
         password: userSrv.generateRandomPassword(),
         userType,
         provider: 'facebook',
