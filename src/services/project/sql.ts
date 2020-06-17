@@ -152,7 +152,7 @@ export const deleteOldProjectArrayItems = (table: string, items: string[]): stri
 
 // [projectId, item1, ..., itemN]
 export const insertNewProjectArrayItems = (table: string, items: string[]): string => `
-  INSERT IGNORE INTO project_${table}
+  INSERT IGNORE INTO project_${table}(project_id, ${table}_id)
   SELECT project_id, ${table}_id
   FROM (
     SELECT ? AS project_id, ${table}_id

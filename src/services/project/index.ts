@@ -36,7 +36,6 @@ export default class ProjectService {
       await conn.commit();
       conn.release();
 
-      this.searchIndex.saveObject({ objectID: projectId, teamSize: size, duration, postal });
       return projectId;
     } catch (err) {
       await conn.rollback();
@@ -179,20 +178,6 @@ export default class ProjectService {
 
       await conn.commit();
       conn.release();
-
-      const { object } = await this.searchIndex.getObject(projectId);
-
-      this.searchIndex.partialUpdateObject({
-        objectID: projectId,
-        title: details.title,
-        status: details.status || object.status,
-        teamSize: details.size || object.teamSize,
-        duration: details.duration || object.duration,
-        postal: details.postal || object.postal,
-        skills,
-        roles,
-        interests,
-      });
     } catch (err) {
       await conn.rollback();
       conn.release();
@@ -219,5 +204,39 @@ export default class ProjectService {
       conn.release();
       throw err;
     }
+  }
+
+  indexProject(projectId: string, project: Project): void {
+    const { title, size, duration, postal, status } = project.details;
+    const { skills, roles, interests } = project;
+
+    this.searchIndex.saveObject({
+      objectID: projectId,
+      title,
+      status,
+      teamSize: size,
+      duration,
+      postal,
+      skills,
+      roles,
+      interests,
+    });
+  }
+
+  async updateProjectIndex(projectId: string, project: Project): Promise<void> {
+    const { details, skills, roles, interests } = project;
+    const { object } = await this.searchIndex.getObject(projectId);
+
+    this.searchIndex.partialUpdateObject({
+      objectID: projectId,
+      title: details.title,
+      status: details.status || object.status,
+      teamSize: details.size || object.teamSize,
+      duration: details.duration || object.duration,
+      postal: details.postal || object.postal,
+      skills,
+      roles,
+      interests,
+    });
   }
 }

@@ -15,6 +15,7 @@ const createProject = (srv: ProjectService) => async (req: Request, res: Respons
 
   try {
     const projectId = await srv.createProject(username, project.details);
+    srv.indexProject(projectId, project);
     await srv.updateProject(username, projectId, project);
     res.json({ projectId });
   } catch (error) {
@@ -42,6 +43,7 @@ const getProjectById = (srv: ProjectService) => async (req: Request, res: Respon
 
   try {
     const project = await srv.getProject(projectId);
+    await srv.updateProjectIndex(projectId, project);
     res.json(project);
   } catch (error) {
     res.json({
