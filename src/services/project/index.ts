@@ -220,6 +220,7 @@ export default class ProjectService {
       skills,
       roles,
       interests,
+      date: new Date().toISOString(),
     });
   }
 

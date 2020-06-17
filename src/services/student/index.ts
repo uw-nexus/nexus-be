@@ -24,6 +24,7 @@ export default class StudentService {
       objectID: username,
       firstName,
       lastName,
+      date: new Date().toISOString(),
     });
 
     try {
