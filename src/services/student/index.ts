@@ -63,7 +63,6 @@ export default class StudentService {
         firstName: res[0].firstName,
         lastName: res[0].lastName,
         email: res[0].email,
-        dob: res[0].dob ? new Date(res[0].dob) : null,
         bio: res[0].bio || '',
         school: res[0].school || '',
         degree: res[0].degree || '',
@@ -108,7 +107,6 @@ export default class StudentService {
       const studentId = await this.getStudentId(username);
 
       const params = [
-        profile.dob || null,
         profile.bio || null,
         profile.school || null,
         profile.degree || null,

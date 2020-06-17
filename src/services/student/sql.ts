@@ -77,11 +77,10 @@ export const getStudentInterests = `
   WHERE STU.student_id = ?;
 `;
 
-// [dob, bio, school, degree, major1, major2, resume, linkedin, website, postal, studentId]
+// [bio, school, degree, major1, major2, resume, linkedin, website, postal, studentId]
 export const updateStudentProfile = `
   UPDATE student
   SET 
-    dob = COALESCE(?, dob),
     bio = COALESCE(?, bio),
     school_id = COALESCE((SELECT school_id FROM school WHERE name = ?), school_id),
     degree_id = COALESCE((SELECT degree_id FROM degree WHERE name = ?), degree_id),
