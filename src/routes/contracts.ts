@@ -44,6 +44,48 @@ const updateContractStatus = (srv: ContractService) => async (req: Request, res:
   }
 };
 
+const createInvite = (srv: ContractService) => async (req: Request, res: Response): Promise<void> => {
+  const { recipient } = req.body;
+  const sender = req.user as User;
+
+  try {
+    const inviteId = await srv.createInvite(sender.username, recipient);
+    res.json({ inviteId });
+  } catch (error) {
+    res.json({
+      error: (error as Error).message,
+    });
+  }
+};
+
+const updateInviteStatus = (srv: ContractService) => async (req: Request, res: Response): Promise<void> => {
+  const { sender } = req.params;
+  const user = req.user as User;
+  const { status } = req.body;
+
+  try {
+    await srv.updateInviteStatus(sender, user.username, status);
+    res.json({ success: `Invite: ${sender} to ${user.username} updated.` });
+  } catch (error) {
+    res.json({
+      error: (error as Error).message,
+    });
+  }
+};
+
+const getStudentNotifications = (srv: ContractService) => async (req: Request, res: Response): Promise<void> => {
+  const { username } = req.user as User;
+
+  try {
+    const notifs = await srv.getStudentNotifications(username);
+    res.json(notifs);
+  } catch (error) {
+    res.json({
+      error: (error as Error).message,
+    });
+  }
+};
+
 export default (db: Pool): Router => {
   const router = Router();
   const contractService = new ContractService(db);
@@ -52,6 +94,10 @@ export default (db: Pool): Router => {
   router.get('/', getStudentContracts(contractService));
   router.post('/', createStudentContract(contractService));
   router.patch('/:contractId', updateContractStatus(contractService));
+
+  router.get('/notifications', getStudentNotifications(contractService));
+  router.post('/invites', createInvite(contractService));
+  router.patch('/invites/:sender', updateInviteStatus(contractService));
 
   return router;
 };
