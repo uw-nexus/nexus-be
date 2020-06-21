@@ -43,7 +43,6 @@ const getProjectById = (srv: ProjectService) => async (req: Request, res: Respon
 
   try {
     const project = await srv.getProject(projectId);
-    await srv.updateProjectIndex(projectId, project);
     res.json(project);
   } catch (error) {
     res.json({
@@ -59,6 +58,7 @@ const updateProject = (srv: ProjectService) => async (req: Request, res: Respons
 
   try {
     await srv.updateProject(username, projectId, project);
+    await srv.updateProjectIndex(projectId, project);
     res.json({ success: `Project id: ${projectId} updated.` });
   } catch (error) {
     res.json({
