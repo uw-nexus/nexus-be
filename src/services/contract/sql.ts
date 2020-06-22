@@ -95,7 +95,7 @@ export const getInvites = `
 export const getRequests = `
   SELECT
     C.contract_id AS contractId,
-    U1.username AS studentUsername,
+    U2.username AS studentUsername,
     STU.first_name AS studentFirstName,
     STU.last_name AS studentLastName,
     STU.email AS studentEmail,

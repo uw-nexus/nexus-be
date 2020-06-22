@@ -126,13 +126,13 @@ export default class ContractService {
 
         const rolesRes = await this.studentIndex.getObjects(invites.map((inv): string => inv.username));
         rolesRes.results.forEach(user => {
-          const { username, roles } = (user as unknown) as { username: string; roles: string[] };
-          mappings.get(username).roles = roles;
+          const { objectID, roles } = (user as unknown) as { objectID: string; roles: string[] };
+          mappings.get(objectID).roles = roles;
         });
 
         invites.forEach(inv => {
-          inv.roles = mappings.get(inv.username).roles;
-          inv.projects = mappings.get(inv.username).projects;
+          inv.roles = mappings.get(inv.username).roles || [];
+          inv.projects = mappings.get(inv.username).projects || [];
         });
 
         res.invites = invites;
@@ -161,7 +161,7 @@ export default class ContractService {
         });
 
         requests.forEach(req => {
-          req.student.roles = roleMappings.get(req.student.username);
+          req.student.roles = roleMappings.get(req.student.username) || [];
         });
 
         res.requests = requests;
