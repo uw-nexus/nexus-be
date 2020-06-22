@@ -24,12 +24,12 @@ export default class ProjectService {
   }
 
   async createProject(username: string, details: ProjectDetails): Promise<string> {
-    const { title, description, size, duration, postal } = details;
+    const { title, description, size, duration, postal, status } = details;
     const conn = await this.db.getConnection();
 
     try {
       conn.beginTransaction();
-      const projectParams = [username, title, description, size, duration, postal];
+      const projectParams = [username, title, description, size, duration, status || 'Active', postal];
       const [projectRes] = await conn.execute(SQL.insertProject, projectParams);
       const projectId = projectRes['insertId'];
 
@@ -184,9 +184,11 @@ export default class ProjectService {
         await conn.execute(SQL.deleteProjectInterests, [projectId]);
       }
 
-      const excParams = Object.entries(exercises).reduce((arr, cur) => [...arr, ...cur], []);
-      await conn.execute(SQL.deleteProjectExercises, [projectId]);
-      await conn.execute(SQL.updateProjectExercises(Object.keys(exercises)), [...excParams, projectId]);
+      if (exercises && Object.keys(exercises).length) {
+        const excParams = Object.entries(exercises).reduce((arr, cur) => [...arr, ...cur], []);
+        await conn.execute(SQL.deleteProjectExercises, [projectId]);
+        await conn.execute(SQL.updateProjectExercises(Object.keys(exercises)), [...excParams, projectId]);
+      }
 
       await conn.commit();
       conn.release();

@@ -13,7 +13,7 @@ export const getOwnerUsername = `
   WHERE P.project_id = ?;
 `;
 
-// [username, title, description, size, duration, postal]
+// [username, title, description, size, duration, status, postal]
 export const insertProject = `
   INSERT INTO project
   VALUES (
@@ -25,7 +25,7 @@ export const insertProject = `
     ?, ?, 
     (SELECT size_id FROM team_size WHERE name = ?),
     (SELECT duration_id FROM duration WHERE name = ?),
-    (SELECT status_id FROM status WHERE name = 'Active'),    
+    (SELECT status_id FROM status WHERE name = ?),    
     ?, CURDATE(), CURDATE()
   );
 `;
