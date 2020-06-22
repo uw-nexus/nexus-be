@@ -161,7 +161,12 @@ export default class StudentService {
         firstName: profile.firstName || firstName,
         lastName: profile.lastName || lastName,
         degree: profile.degree || degree,
-        majors: [profile.major1, profile.major2, ...majors].filter(Boolean).splice(0, 2),
+        majors: [profile.major1, profile.major2, ...majors]
+          .filter((value, index, self) => {
+            return self.indexOf(value) === index;
+          })
+          .filter(Boolean)
+          .splice(0, 2),
         postal: profile.postal || postal,
         skills,
         roles,
