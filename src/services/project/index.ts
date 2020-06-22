@@ -205,6 +205,8 @@ export default class ProjectService {
 
     try {
       conn.beginTransaction();
+      await conn.execute(SQL.deleteProjectContracts, [projectId]);
+      await conn.execute(SQL.deleteProjectSaved, [projectId]);
       await conn.execute(SQL.deleteProjectSkills, [projectId]);
       await conn.execute(SQL.deleteProjectRoles, [projectId]);
       await conn.execute(SQL.deleteProjectInterests, [projectId]);

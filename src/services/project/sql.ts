@@ -174,6 +174,8 @@ export const updateProjectExercises = (roles: string[]): string => `
 `;
 
 // [projectId]
+export const deleteProjectContracts = `DELETE FROM contract WHERE project_id = ?;`;
+export const deleteProjectSaved = `DELETE FROM saved_project WHERE project_id = ?;`;
 export const deleteProjectInterests = `DELETE FROM project_interest WHERE project_id = ?;`;
 export const deleteProjectSkills = `DELETE FROM project_skill WHERE project_id = ?;`;
 export const deleteProjectRoles = `DELETE FROM project_role WHERE project_id = ?;`;
