@@ -1,5 +1,5 @@
 import { Pool, RowDataPacket } from 'mysql2/promise';
-import { Student, StudentProfile, User } from '../../types';
+import { Student, StudentProfile } from '../../types';
 import * as SQL from './sql';
 
 import algoliasearch, { SearchIndex } from 'algoliasearch';
@@ -24,6 +24,12 @@ export default class StudentService {
       objectID: username,
       firstName,
       lastName,
+      degree: '',
+      major: '',
+      postal: '',
+      skills: [],
+      roles: [],
+      interests: [],
       date: new Date().toISOString(),
     });
 
@@ -148,15 +154,15 @@ export default class StudentService {
       await conn.commit();
       conn.release();
 
-      const { object } = await this.searchIndex.findObject(s => ((s as unknown) as User).username === username);
+      const { objectID, firstName, lastName, degree, majors, postal } = await this.searchIndex.getObject(username);
 
       this.searchIndex.partialUpdateObject({
-        objectID: object.objectID,
-        firstName: profile.firstName || object.firstName,
-        lastName: profile.lastName || object.lastName,
-        degree: profile.degree || object.degree,
-        majors: [profile.major1, profile.major2, ...object.majors].filter(Boolean).splice(0, 2),
-        postal: profile.postal || object.postal,
+        objectID: objectID,
+        firstName: profile.firstName || firstName,
+        lastName: profile.lastName || lastName,
+        degree: profile.degree || degree,
+        majors: [profile.major1, profile.major2, ...majors].filter(Boolean).splice(0, 2),
+        postal: profile.postal || postal,
         skills,
         roles,
         interests,
@@ -181,7 +187,7 @@ export default class StudentService {
       await conn.commit();
       conn.release();
 
-      this.searchIndex.deleteBy({ filters: `username:"${username}"` });
+      this.searchIndex.deleteObject(username);
     } catch (err) {
       await conn.rollback();
       conn.release();
