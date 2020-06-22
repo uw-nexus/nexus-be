@@ -38,6 +38,9 @@ export type Project = {
   skills: string[];
   roles: string[];
   interests: string[];
+  exercises?: {
+    [role: string]: string;
+  };
 };
 
 export type ProjectDetails = {

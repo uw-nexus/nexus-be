@@ -1,8 +1,8 @@
-const repeatStatement = (statement: string, items: string[]): string =>
+const repeatStatement = (statement: string, items: string[], separator = ', '): string =>
   items.length
     ? Array(items.length)
         .fill(statement)
-        .join(', ')
+        .join(separator)
     : `''`;
 
 // [projectId]
@@ -89,10 +89,10 @@ export const getProjectSkills = `
 
 // [projectId]
 export const getProjectRoles = `
-  SELECT R.name AS role
+  SELECT R.name AS role, PR.exercise AS exercise
   FROM project P
-  JOIN project_role PI ON PI.project_id = P.project_id
-  JOIN role R ON R.role_id = PI.role_id
+  JOIN project_role PR ON PR.project_id = P.project_id
+  JOIN role R ON R.role_id = PR.role_id
   WHERE P.project_id = ?;
 `;
 
@@ -161,8 +161,21 @@ export const insertNewProjectArrayItems = (table: string, items: string[]): stri
   ) T;
 `;
 
+// [role1, ex1, ..., roleN, exN, projectId]
+export const updateProjectExercises = (roles: string[]): string => `
+  UPDATE project_role PR
+  JOIN role R ON R.role_id = PR.role_id
+  SET PR.exercise =
+    CASE R.name
+      ${repeatStatement('WHEN ? THEN ?', roles, ' ')}
+      ELSE ''
+    END
+  WHERE PR.project_id = ?;
+`;
+
 // [projectId]
 export const deleteProjectInterests = `DELETE FROM project_interest WHERE project_id = ?;`;
 export const deleteProjectSkills = `DELETE FROM project_skill WHERE project_id = ?;`;
 export const deleteProjectRoles = `DELETE FROM project_role WHERE project_id = ?;`;
+export const deleteProjectExercises = `UPDATE project_role SET exercise = NULL WHERE project_id = ?;`;
 export const deleteProject = `DELETE FROM project WHERE project_id = ?;`;

@@ -92,11 +92,19 @@ export default class ProjectService {
       const [rolesRes] = await this.db.execute(SQL.getProjectRoles, [projectId]);
       const [interestsRes] = await this.db.execute(SQL.getProjectInterests, [projectId]);
 
+      const exercises = {};
+      (rolesRes as RowDataPacket[])
+        .filter(row => Boolean(row.exercise))
+        .forEach(row => {
+          exercises[row.role] = row.exercise;
+        });
+
       const project = {
         details: projectDetails,
         skills: (skillsRes as RowDataPacket[]).map(row => row.skill),
         roles: (rolesRes as RowDataPacket[]).map(row => row.role),
         interests: (interestsRes as RowDataPacket[]).map(row => row.interest),
+        exercises,
       };
 
       return project;
@@ -133,7 +141,7 @@ export default class ProjectService {
 
   async updateProject(username: string, projectId: string, project: Project): Promise<void> {
     await this.validateOwner(projectId, username);
-    const { details, skills, roles, interests } = project;
+    const { details, skills, roles, interests, exercises } = project;
     const conn = await this.db.getConnection();
 
     try {
@@ -175,6 +183,10 @@ export default class ProjectService {
       } else {
         await conn.execute(SQL.deleteProjectInterests, [projectId]);
       }
+
+      const excParams = Object.entries(exercises).reduce((arr, cur) => [...arr, ...cur], []);
+      await conn.execute(SQL.deleteProjectExercises, [projectId]);
+      await conn.execute(SQL.updateProjectExercises(Object.keys(exercises)), [...excParams, projectId]);
 
       await conn.commit();
       conn.release();
