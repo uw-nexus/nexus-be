@@ -74,6 +74,37 @@ export default class ContractService {
     }
   }
 
+  async getStudentInvites(studentUsername: string): Promise<Contract[]> {
+    try {
+      const [res] = await this.db.execute(SQL.getStudentContracts, [studentUsername]);
+      const contracts: Contract[] = (res as RowDataPacket[]).map(row => {
+        const c: Contract = {
+          contractId: row.contractId,
+          project: {
+            projectId: row.projectId,
+            owner: {
+              user: { username: row.ownerUsername },
+              firstName: row.ownerFirstName,
+              lastName: row.ownerLastName,
+            },
+            title: row.projectTitle,
+            status: row.projectStatus,
+            duration: row.projectDuration,
+            size: row.projectSize,
+            postal: row.projectPostal,
+          },
+          status: row.contractStatus,
+        };
+
+        return c;
+      });
+
+      return contracts;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async createInvite(sender: string, recipient: string): Promise<string> {
     try {
       const [res] = await this.db.execute(SQL.insertInvite, [sender, recipient]);
